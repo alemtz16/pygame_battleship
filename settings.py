@@ -1,24 +1,29 @@
-# Game screen dimensions
-screen_width = 800
-screen_height = 600
+# settings.py
 
-# Colors (RGB)
-black = (0, 0, 0)
-white = (255, 255, 255)
-blue = (0, 0, 255)
-gray = (200, 200, 200)
-red = (255, 0, 0)
+# Tamaño de la Ventana
+CELL_SIZE = 30
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 600  # Altura de la ventana
+WINDOW_SIZE = (WINDOW_WIDTH, WINDOW_HEIGHT)
 
-# Game settings
-grid_size = 10  # 10x10 grid
-cell_size = 40  # Each cell is 40x40 pixels
-board_offset = (100, 100)  # Offset from the top-left corner to start drawing the game board
+# Colores
+WHITE = (255, 255, 255)  # Color blanco
+BLACK = (0, 0, 0)  # Color negro
+GRAY = (128, 128, 128)  # Color gris
+RED = (255, 0, 0)  # Color rojo
+GREEN = (0, 255, 0)  # Color verde
+BLUE = (0, 0, 255)  # Color azul
 
-# Ship settings
-# Define ships as a list of lengths. For example, a standard Battleship game setup:
-# 1 ship of length 5 (Carrier), 1 of length 4 (Battleship), 2 of length 3 (Cruiser and Submarine), and 1 of length 2 (Destroyer).
-ships_lengths = [5, 4, 3, 3, 2]
+# Tamaño del Tablero
+GRID_SIZE = 10  # Tamaño del tablero, 10x10
+  
+# Tipos de Fuente
+FONT_NAME = "Arial"  # Fuente principal del juego
+TEXT_FONT_SIZE = 24  # Tamaño de la fuente estándar
+TITLE_FONT_SIZE = 36  # Tamaño de la fuente para títulos
 
-# AI Settings
-# Adjust these settings based on the difficulty level you wish to implement for your AI.
-ai_difficulty = 'medium'  # Options could include 'easy', 'medium', 'hard'.
+# Configuración de Sonidos
+VOLUME = 0.5  # Volumen predeterminado para sonidos
+
+# Otros Ajustes
+FPS = 60  # Cuadros por segundo para el bucle del juego

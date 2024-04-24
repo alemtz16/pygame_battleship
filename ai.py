@@ -1,3 +1,5 @@
+#Define la lógica de la IA para el juego, como las estrategias para disparar.
+
 import random
  
 

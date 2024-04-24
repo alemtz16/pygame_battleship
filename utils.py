@@ -1,67 +1,51 @@
-import random
-from settings import grid_size, ships_lengths
+# utils.py
 
-def generate_random_ship_position(length):
-    """
-    Generates a random position for a ship of given length.
-    Ensures the ship fits within the game board.
+import pygame
+import os
 
-    :param length: The length of the ship.
-    :return: A tuple containing the starting position (row, col), and orientation ('horizontal' or 'vertical').
+# Cargar Imágenes
+def load_image(image_path, scale=None):
     """
-    orientation = random.choice(['horizontal', 'vertical'])
-    if orientation == 'horizontal':
-        row = random.randint(0, grid_size - 1)
-        col = random.randint(0, grid_size - length)
-    else:
-        row = random.randint(0, grid_size - length)
-        col = random.randint(0, grid_size - 1)
-    
-    return (row, col), orientation
+    Carga una imagen desde el camino especificado. 
+    Si 'scale' es proporcionado, la imagen se ajustará a esas dimensiones.
+    """
+    image = pygame.image.load(image_path)
+    if scale:
+        image = pygame.transform.scale(image, scale)  # Escala la imagen al tamaño dado
+    return image
 
-def check_overlap(ship_position, existing_ships,length):
-    """
-    Checks if a newly generated ship position overlaps with any existing ships.
 
-    :param ship_position: The position and orientation of the new ship (as returned by generate_random_ship_position).
-    :param existing_ships: A list of positions and orientations of already placed ships.
-    :return: True if there is an overlap, False otherwise.
+# Cargar Sonidos
+def load_sound(sound_path):
     """
-    new_ship_cells = get_ship_cells(ship_position[0], ship_position[1], length)
-    for existing_ship in existing_ships:
-        existing_ship_cells = get_ship_cells(existing_ship[0], existing_ship[1], existing_ship[2])
-        if set(new_ship_cells) & set(existing_ship_cells):  # Check for intersection
-            return True
-    return False
+    Carga un sonido desde el camino especificado.
+    """
+    sound = pygame.mixer.Sound(sound_path)  # Carga el sonido
+    return sound
 
-def get_ship_cells(start_pos, orientation, length):
-    """
-    Generates a list of cells occupied by a ship given its start position, orientation, and length.
 
-    :param start_pos: The starting position of the ship (row, col).
-    :param orientation: The orientation of the ship ('horizontal' or 'vertical').
-    :param length: The length of the ship.
-    :return: A list of tuples representing the cells occupied by the ship.
+# Detectar Colisiones
+def detect_collision(rect1, rect2):
     """
-    cells = []
-    for i in range(length):
-        if orientation == 'horizontal':
-            cells.append((start_pos[0], start_pos[1] + i))
-        else:  # vertical
-            cells.append((start_pos[0] + i, start_pos[1]))
-    return cells
+    Devuelve True si 'rect1' y 'rect2' se superponen, False en caso contrario.
+    """
+    return rect1.colliderect(rect2)  # Devuelve True si hay colisión
 
-def generate_fleet_positions():
-    """
-    Generates non-overlapping positions for a fleet based on the game's ship lengths.
 
-    :return: A list of ship positions and orientations for the entire fleet.
+# Dibujar Texto
+def draw_text(screen, text, font, color, position):
     """
-    fleet_positions = []
-    for length in ships_lengths:
-        while True:
-            position, orientation = generate_random_ship_position(length)
-            if not check_overlap((position, orientation, length), fleet_positions):
-                fleet_positions.append((position, orientation, length))
-                break
-    return fleet_positions
+    Dibuja texto en la pantalla en la posición dada.
+    """
+    text_surface = font.render(text, True, color)  # Crea la superficie de texto
+    text_rect = text_surface.get_rect(center=position)  # Posiciona el texto
+    screen.blit(text_surface, text_rect)  # Dibuja el texto en la pantalla
+
+
+# Obtener Ruta Relativa
+def get_relative_path(relative_path):
+    """
+    Retorna la ruta relativa basada en el directorio actual del archivo.
+    """
+    base_path = os.path.dirname(__file__)  # Obtiene el directorio actual
+    return os.path.join(base_path, relative_path)  # Une con la ruta relativa

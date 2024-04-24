@@ -1,83 +1,63 @@
+# menu.py
+
 import pygame
-import sys
-from settings import screen_width, screen_height, black, white
-from board import Board  # Make sure to import the Board class
+from settings import *
+from gui_helpers import draw_button, button_click_event
 
-class Menu:
+# Clase para el Menú del Juego
+class GameMenu:
     def __init__(self, screen):
-        self.screen = screen
-        self.running = True
-        self.clock = pygame.time.Clock()
-        self.board = Board(screen)  # Initialize the game board
-        self.current_state = "MENU"  # The initial state is set to MENU
+        """
+        Inicializa el menú del juego.
+        """
+        self.screen = screen  # Pantalla de Pygame
+        self.font = pygame.font.Font(None, TITLE_FONT_SIZE)  # Fuente para el menú
 
-    def run(self):
-        if self.current_state == "MENU":
-            self.display_menu()
-        elif self.current_state == "GAME":
-            self.board.draw()  # This would be the method to draw the game board
+        # Botones del Menú
+        self.start_button = pygame.Rect(300, 200, 200, 50)  # Botón para iniciar el juego
+        self.exit_button = pygame.Rect(300, 300, 200, 50)  # Botón para salir del juego
 
-    def display_menu(self):
-        title_font = pygame.font.Font(None, 74)
-        option_font = pygame.font.Font(None, 50)
+    def draw(self):
+        """
+        Dibuja el menú del juego.
+        """
+        self.screen.fill(WHITE)  # Fondo blanco para el menú
 
-        title_text = title_font.render("Battleship Game", True, white)
-        start_text = option_font.render("Start", True, white)
-        settings_text = option_font.render("Settings", True, white)
-        quit_text = option_font.render("Quit", True, white)
+        # Dibuja los botones del menú
+        draw_button(
+            self.screen,
+            "Start Game",
+            self.start_button,
+            BLUE,
+            GRAY,
+            self.font,
+        )
+        draw_button(
+            self.screen,
+            "Exit",
+            self.exit_button,
+            RED,
+            GRAY,
+            self.font,
+        )
 
-        title_rect = title_text.get_rect(center=(screen_width / 2, 100))
-        start_rect = start_text.get_rect(center=(screen_width / 2, 250))
-        settings_rect = settings_text.get_rect(center=(screen_width / 2, 300))
-        quit_rect = quit_text.get_rect(center=(screen_width / 2, 350))
+        pygame.display.flip()  # Actualiza la pantalla
 
-        menu_options = [start_rect, settings_rect, quit_rect]
-
-        selected_option = 0
-
-        while self.current_state == "MENU":
-            self.screen.fill(black)
-
-            # Event handling
-            for event in pygame.event.get():
+    def handle_events(self):
+        """
+        Maneja los eventos del menú.
+        """
+        for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
-                    sys.exit()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_DOWN:
-                        selected_option = (selected_option + 1) % len(menu_options)
-                    elif event.key == pygame.K_UP:
-                        selected_option = (selected_option - 1) % len(menu_options)
-                    elif event.key == pygame.K_RETURN:
-                        if selected_option == 0:
-                            self.current_state = "GAME"  # Change state to GAME
-                        elif selected_option == 1:
-                            # Placeholder for opening settings
-                            pass
-                        elif selected_option == 2:
-                            pygame.quit()
-                            sys.exit()
+                    return "exit"
 
-            # Drawing
-            self.screen.blit(title_text, title_rect)
-            self.screen.blit(start_text, start_rect)
-            self.screen.blit(settings_text, settings_rect)
-            self.screen.blit(quit_text, quit_rect)
+                if event.type == pygame.MOUSEBUTTONDOWN:  # Detecta clics
+                    if self.start_button.collidepoint(pygame.mouse.get_pos()):  # Si el clic está en el botón
+                        return "start_game"
 
-            # Highlight the selected option
-            pygame.draw.rect(self.screen, white, menu_options[selected_option], 2)
+                    if self.exit_button.collidepoint(pygame.mouse.get_pos()):  # Si el clic está en el botón de salida
+                        pygame.quit()
+                        return "exit"
 
-            pygame.display.flip()
-            self.clock.tick(60)
-
-if __name__ == '__main__':
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    pygame.display.set_caption('Battleship Game')
-    menu = Menu(screen)
-    
-    # Main game loop
-    while menu.running:
-        menu.run()
-
-    pygame.quit()
-    sys.exit()
+        return None  # Sin cambios

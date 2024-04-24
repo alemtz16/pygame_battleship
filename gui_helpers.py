@@ -1,65 +1,85 @@
 import pygame
+from settings import *
 
-class Button:
-    def __init__(self, screen, text, pos, size, color, highlight_color, font_size=30):
-        self.screen = screen
-        self.text = text
-        self.pos = pos
-        self.size = size
-        self.color = color
-        self.highlight_color = highlight_color
-        self.font_size = font_size
-        self.rect = pygame.Rect(pos, size)
-        self.font = pygame.font.Font(None, font_size)
-        self.text_surf = self.font.render(text, True, (255, 255, 255))
-        self.text_rect = self.text_surf.get_rect(center=self.rect.center)
+# Función para dibujar botones
+def draw_button(screen, text, rect, color, hover_color, font):
+    """
+    Dibuja un botón con el texto dado y cambia de color al pasar el mouse.
+    """
+    mouse_pos = pygame.mouse.get_pos()  # Posición actual del mouse
+    is_hovering = rect.collidepoint(mouse_pos)  # Verifica si el mouse está sobre el botón
 
-    def draw(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
-            pygame.draw.rect(self.screen, self.highlight_color, self.rect)
-        else:
-            pygame.draw.rect(self.screen, self.color, self.rect)
-        self.screen.blit(self.text_surf, self.text_rect)
+    # Escoge el color según si el mouse está sobre el botón
+    current_color = hover_color if is_hovering else color
+    pygame.draw.rect(screen, current_color, rect)  # Dibuja el botón
+    pygame.draw.rect(screen, BLACK, rect, 2)  # Dibuja el borde del botón
 
-    def is_clicked(self, mouse_pos, mouse_click):
-        if self.rect.collidepoint(mouse_pos) and mouse_click:
-            return True
-        return False
+    # Dibuja el texto centrado en el botón
+    text_surface = font.render(text, True, BLACK)
+    text_rect = text_surface.get_rect(center=rect.center)
+    screen.blit(text_surface, text_rect)  # Coloca el texto en el centro
 
-class TextInput:
-    def __init__(self, screen, initial_text, pos, size, font_size=30):
-        self.screen = screen
-        self.text = initial_text
-        self.pos = pos
-        self.size = size
-        self.font_size = font_size
-        self.rect = pygame.Rect(pos, size)
-        self.font = pygame.font.Font(None, font_size)
-        self.active = False
-        self.color_inactive = pygame.Color('lightskyblue3')
-        self.color_active = pygame.Color('dodgerblue2')
-        self.color = self.color_inactive
+    return is_hovering  # Devuelve si el mouse está sobre el botón
 
-    def handle_event(self, event):
+
+# Función para detectar clics en botones
+def button_click_event(button_rect):
+    """
+    Devuelve True si el botón está clickeado.
+    """
+    for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.rect.collidepoint(event.pos):
-                self.active = not self.active
-            else:
-                self.active = False
-            self.color = self.color_active if self.active else self.color_inactive
-        if event.type == pygame.KEYDOWN:
-            if self.active:
-                if event.key == pygame.K_RETURN:
-                    print(self.text)  # or do something more useful
-                    self.text = ''  # Reset text
-                elif event.key == pygame.K_BACKSPACE:
-                    self.text = self.text[:-1]
-                else:
-                    self.text += event.unicode
+            if button_rect.collidepoint(pygame.mouse.get_pos()):
+                return True  # El botón fue clickeado
+    return False
 
-    def draw(self):
-        text_surf = self.font.render(self.text, True, (255, 255, 255))
-        width = max(200, text_surf.get_width()+10)
-        self.rect.w = width
-        self.screen.blit(text_surf, (self.rect.x+5, self.rect.y+5))
-        pygame.draw.rect(self.screen, self.color, self.rect, 2)
+
+# Función para mostrar mensajes en pantalla
+def show_message(screen, text, font, color, position, duration=2):
+    """
+    Muestra un mensaje en la pantalla durante un tiempo especificado.
+    """
+    text_surface = font.render(text, True, color)  # Crea el texto
+    text_rect = text_surface.get_rect(center=position)  # Posiciona el texto
+    start_time = pygame.time.get_ticks()  # Tiempo de inicio del mensaje
+    
+    # Mostrar el mensaje durante el tiempo especificado
+    while pygame.time.get_ticks() - start_time < duration * 1000:
+        screen.blit(text_surface, text_rect)  # Dibuja el mensaje
+        pygame.display.flip()  # Actualiza la pantalla
+
+
+# Función para implementar Drag and Drop
+def handle_drag_and_drop(ship, board_size, event, dragging_ship):
+    """
+    Maneja el evento de arrastrar y soltar para un barco.
+    """
+    mouse_pos = pygame.mouse.get_pos()  # Posición actual del mouse
+
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        # Verifica si el clic se hizo sobre el barco
+        ship_rect = pygame.Rect(
+            ship.start_position[0] * CELL_SIZE, 
+            ship.start_position[1] * CELL_SIZE, 
+            ship.size * CELL_SIZE if ship.orientation == 'horizontal' else CELL_SIZE, 
+            ship.size * CELL_SIZE if ship.orientation == 'vertical' else CELL_SIZE
+        )
+        if ship_rect.collidepoint(mouse_pos):
+            dragging_ship = ship  # Iniciar el arrastre
+
+    elif event.type == pygame.MOUSEMOTION and dragging_ship:
+        # Ajustar la posición mientras se arrastra
+        dragging_ship.start_position = (
+            mouse_pos[0] // CELL_SIZE,
+            mouse_pos[1] // CELL_SIZE
+        )
+
+    elif event.type == pygame.MOUSEBUTTONUP and dragging_ship:
+        # Ajustar la posición para mantener dentro del tablero
+        dragging_ship.start_position = (
+            max(0, min(board_size - (dragging_ship.size if dragging_ship.orientation == 'horizontal' else 1), dragging_ship.start_position[0])),
+            max(0, min(board_size - (dragging_ship.size if dragging_ship.orientation == 'vertical' else 1), dragging_ship.start_position[1]))
+        )
+        dragging_ship = None  # Terminar el arrastre
+
+    return dragging_ship  # Devuelve el barco arrastrado
