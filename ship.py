@@ -1,37 +1,49 @@
-# Define la clase para los barcos y su comportamiento.
+
 import pygame
+
+from settings import CELL_SIZE, BLACK
 
 class Ship:
     def __init__(self, name, size, orientation='horizontal', start_position=(0, 0), image_path=None):
         """
         Inicializa un barco con un tamaño específico, una orientación y una posición de inicio.
         """
+        print(f"Initializing ship: {name}, size: {size}, orientation: {orientation}, start_position: {start_position}")
         self.name = name
-        self.size = size  # Tamaño del barco (por ejemplo, 2 para un destructor)
-        self.orientation = orientation  # Orientación ('horizontal' o 'vertical')
-        self.start_position = start_position  # Posición inicial (x, y)
-        self.dragging = False  # Controla si el barco está siendo arrastrado
+        self.size = size 
+        self.orientation = orientation  
+        self.start_position = start_position 
+        self.dragging = False 
+        width = self.size * CELL_SIZE if orientation == 'horizontal' else CELL_SIZE
+        height = CELL_SIZE if orientation == 'horizontal' else self.size * CELL_SIZE
+        self.rect = pygame.Rect(start_position, (width, height)) 
+       
+        try:
+            if image_path:
+                self.image = pygame.image.load(image_path)
+                if self.orientation == 'horizontal':
+                    scale = (self.size * CELL_SIZE, CELL_SIZE)
+                else:
+                    scale = (CELL_SIZE, self.size * CELL_SIZE)
+                self.image = pygame.transform.scale(self.image, scale)  
+                print(f"Image loaded for {self.name} from {image_path}")
+        except Exception as e:
+            print(f"Error loading image for {self.name}: {e}")
+            self.image = None  
 
-        # Cargar la imagen si se proporciona un camino
-        if image_path:
-            self.image = pygame.image.load(image_path)
-            self.rect = self.image.get_rect(center=start_position)  # Bounding box
-        else:
-            # Crear un rectángulo predeterminado según la orientación
-            width = size * 20 if orientation == 'horizontal' else 20
-            height = 20 if orientation == 'horizontal' else size * 20
-            self.rect = pygame.Rect(start_position, (width, height))
 
     def get_positions(self):
         """
-        Retorna una lista de posiciones ocupadas por el barco basado en su tamaño, orientación y posición inicial.
+        Returns a list of positions occupied by the ship based on its size, orientation, and start position.
         """
+        positions = []
         if self.orientation == 'horizontal':
-            # Genera posiciones horizontales
-            return [(self.rect.left + i * 20, self.rect.top) for i in range(self.size)]
+           
+            positions = [(self.start_position[0] + i * 20, self.start_position[1]) for i in range(self.size)]
         else:
-            # Genera posiciones verticales
-            return [(self.rect.left, self.rect.top + i * 20) for i in range(self.size)]
+            
+            positions = [(self.start_position[0], self.start_position[1] + i * 20) for i in range(self.size)]
+        return positions
 
     def is_within_bounds(self, board_rect):
         """
@@ -45,12 +57,12 @@ class Ship:
         """
         if self.orientation == 'horizontal':
             self.orientation = 'vertical'
-            self.rect.size = (20, self.size * 20)  # Ajustar tamaño del rectángulo
+            self.rect.size = (20, self.size * 20)  
         else:
             self.orientation = 'horizontal'
-            self.rect.size = (self.size * 20, 20)  # Ajustar tamaño del rectángulo
+            self.rect.size = (self.size * 20, 20)  
 
-        # Mantener la posición actual en el centro del nuevo tamaño
+       
         self.rect.center = self.start_position
 
     def move_to(self, new_position):
@@ -60,15 +72,33 @@ class Ship:
         self.start_position = new_position
         self.rect.topleft = new_position
 
+ 
+  
     def draw(self, screen):
-        """
-        Dibuja el barco en la pantalla.
-        """
-        if hasattr(self, 'image'):
-            screen.blit(self.image, self.rect.topleft)  # Dibujar la imagen
+      
+        screen_x = self.start_position[0] * CELL_SIZE
+        screen_y = self.start_position[1] * CELL_SIZE
+
+      
+        base_height = CELL_SIZE 
+
+        if self.image:
+           
+            scale_width = CELL_SIZE
+
+           
+            scale_height = base_height * self.size 
+
+     
+            scaled_image = pygame.transform.scale(self.image, (scale_width, scale_height))
+
+           
+            screen.blit(scaled_image, (screen_x, screen_y))
         else:
-            # Dibujar un rectángulo simple si no hay imagen
-            pygame.draw.rect(screen, (255, 255, 255), self.rect)  # Color blanco
+
+            rect_width = self.size * CELL_SIZE
+            rect_height = base_height * self.size  
+            pygame.draw.rect(screen, BLACK, (screen_x, screen_y, rect_width, rect_height))
 
     def update(self, events):
         """
@@ -76,12 +106,12 @@ class Ship:
         """
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1 and self.rect.collidepoint(pygame.mouse.get_pos()):  # Clic izquierdo
-                    self.dragging = True  # Comienza a arrastrar
+                if event.button == 1 and self.rect.collidepoint(pygame.mouse.get_pos()): 
+                    self.dragging = True
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    self.dragging = False  # Dejar de arrastrar
+                    self.dragging = False 
 
         if self.dragging:
-            self.rect.center = pygame.mouse.get_pos()  # Mover con el mouse
+            self.rect.center = pygame.mouse.get_pos()

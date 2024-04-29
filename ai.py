@@ -1,5 +1,3 @@
-#Define la lógica de la IA para el juego, como las estrategias para disparar.
-
 import random
  
 
@@ -32,16 +30,15 @@ class AI:
     def mark_shot(self, x, y, hit=False):
         self.shots_fired[y][x] = True
         if hit:
-            # Further enhance this part to track hits and adjust strategy accordingly
+            
             pass
 
     def make_move(self):
-        # Decision-making logic to choose the best move
+
         best_shot = self.find_best_shot()
         self.mark_shot(best_shot[1], best_shot[0])
         return best_shot
 
-# Example usage:
 
 ai_player = AI()
 next_move = ai_player.make_move()

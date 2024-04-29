@@ -1,29 +1,28 @@
-# menu.py
+
 
 import pygame
 from settings import *
 from gui_helpers import draw_button, button_click_event
 
-# Clase para el Menú del Juego
+
 class GameMenu:
     def __init__(self, screen):
         """
         Inicializa el menú del juego.
         """
-        self.screen = screen  # Pantalla de Pygame
-        self.font = pygame.font.Font(None, TITLE_FONT_SIZE)  # Fuente para el menú
+        self.screen = screen 
+        self.font = pygame.font.Font(None, TITLE_FONT_SIZE)  
 
-        # Botones del Menú
-        self.start_button = pygame.Rect(300, 200, 200, 50)  # Botón para iniciar el juego
-        self.exit_button = pygame.Rect(300, 300, 200, 50)  # Botón para salir del juego
-
+    
+        self.start_button = pygame.Rect(300, 200, 200, 50) 
+        self.exit_button = pygame.Rect(300, 300, 200, 50)  
     def draw(self):
         """
         Dibuja el menú del juego.
         """
-        self.screen.fill(WHITE)  # Fondo blanco para el menú
+        self.screen.fill(WHITE) 
 
-        # Dibuja los botones del menú
+
         draw_button(
             self.screen,
             "Start Game",
@@ -41,7 +40,7 @@ class GameMenu:
             self.font,
         )
 
-        pygame.display.flip()  # Actualiza la pantalla
+        pygame.display.flip()  
 
     def handle_events(self):
         """
@@ -52,12 +51,12 @@ class GameMenu:
                     pygame.quit()
                     return "exit"
 
-                if event.type == pygame.MOUSEBUTTONDOWN:  # Detecta clics
-                    if self.start_button.collidepoint(pygame.mouse.get_pos()):  # Si el clic está en el botón
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if self.start_button.collidepoint(pygame.mouse.get_pos()): 
                         return "start_game"
 
-                    if self.exit_button.collidepoint(pygame.mouse.get_pos()):  # Si el clic está en el botón de salida
+                    if self.exit_button.collidepoint(pygame.mouse.get_pos()):  
                         pygame.quit()
                         return "exit"
 
-        return None  # Sin cambios
+        return None  

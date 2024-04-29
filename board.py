@@ -1,65 +1,44 @@
-# board.py
-
 import pygame
 from ship import Ship
 
 class Board:
     def __init__(self, size):
         """
-        Inicializa el tablero con una matriz cuadrada de un tamaño específico.
+        Initializes the board with a square matrix of a specific size.
         """
-        self.size = size  # Tamaño del tablero
-        # Crear una matriz 2D para representar el tablero
+        self.size = size  
         self.grid = [[None for _ in range(size)] for _ in range(size)]
-        self.ships = []  # Lista para mantener los barcos colocados en el tablero
+        self.ships = []  
+        self.ships_drawn = False  
 
     def place_ship(self, ship):
         """
-        Coloca un barco en el tablero si las posiciones son válidas.
+        Places a ship on the board if the positions are valid.
         """
-        positions = ship.get_positions()  # Obtiene las posiciones que ocupa el barco
+        positions = ship.get_positions()  
+        print(f"Placing ship: {ship.name} at positions: {positions}")
 
-        # Verificar si todas las posiciones están dentro del tablero y no están ocupadas
+       
         if all(self.is_within_bounds(pos) and not self.grid[pos[1]][pos[0]] for pos in positions):
             for pos in positions:
-                self.grid[pos[1]][pos[0]] = ship  # Marca la posición en la cuadrícula
-            self.ships.append(ship)  # Añade el barco a la lista de barcos
+                self.grid[pos[1]][pos[0]] = ship  
+            self.ships.append(ship)  
+            print(f"Ship {ship.name} placed successfully")
             return True
-        return False
+        else:
+            print(f"Failed to place ship {ship.name} at positions: {positions}")
+            return False
 
     def is_within_bounds(self, position):
         """
-        Verifica si una posición está dentro del tablero.
+        Checks if a position is within the board.
         """
         x, y = position
         return 0 <= x < self.size and 0 <= y < self.size
 
-    def receive_shot(self, position):
-        """
-        Recibe un disparo en una posición y devuelve True si golpea un barco.
-        """
-        x, y = position
-        if not self.is_within_bounds(position):
-            return False  # Disparo fuera del tablero
-
-        if self.grid[y][x] is not None:
-            ship = self.grid[y][x]
-            self.grid[y][x] = "hit"  # Marcar como golpeado
-            return True
-        return False
-
-    def is_sunk(self, ship):
-        """
-        Determina si un barco está completamente hundido.
-        """
-        positions = ship.get_positions()  # Obtiene las posiciones del barco
-        # Verificar si todas las posiciones están marcadas como golpeadas
-        return all(self.grid[pos[1]][pos[0]] == "hit" for pos in positions)
-
+   
     def draw(self, screen, cell_size, offset=(0, 0)):
-        """
-        Dibuja el tablero en la pantalla.
-        """
+
         for y in range(self.size):
             for x in range(self.size):
                 rect = pygame.Rect(
@@ -68,13 +47,41 @@ class Board:
                     cell_size,
                     cell_size,
                 )
-                pygame.draw.rect(screen, (0,0,0), rect, 1)  # Dibuja la celda
+                pygame.draw.rect(screen, (0, 0, 0), rect, 1)  # Draw the grid cell
 
-                if self.grid[y][x] == "hit":
-                    # Dibuja un marcador para un golpe
-                    pygame.draw.circle(
-                        screen,
-                        (255, 0, 0),
-                        (rect.centerx, rect.centery),
-                        cell_size // 4,
-                    )
+
+        for ship in self.ships:
+            print(f"Drawing {ship.name} at {ship.start_position}")
+            ship.draw(screen) 
+
+
+    def receive_shot(self, position):
+        """
+        Receives a shot at a position and returns True if it hits a ship.
+        """
+        x, y = position
+        if not self.is_within_bounds(position):
+            return False 
+
+        if self.grid[y][x] is not None:
+            ship = self.grid[y][x]
+            self.grid[y][x] = "hit" 
+            return True
+        return False
+
+ 
+
+    def draw_ships_below_board(self, screen, ships, cell_size):
+        if self.ships_drawn:
+            return  
+
+        start_x = 50 
+        start_y = self.size * cell_size + 100 
+        x_offset = start_x  
+        for idx, ship in enumerate(ships):
+            if idx > 0: 
+                x_offset += 40
+            ship.start_position = (x_offset // cell_size, start_y // cell_size)  
+            ship.draw(screen)
+            prev_ship = ship 
+        self.ships_drawn = True  
