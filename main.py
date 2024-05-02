@@ -6,7 +6,8 @@ from board import Board
 from ship import Ship
 from gui_helpers import handle_drag_and_drop, show_message
 from fleet_config import FLEET  
-
+import logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 pygame.init()
 
@@ -76,35 +77,53 @@ placed_ships = []
 for ship in ships:
     if not (0 <= ship.start_position[0] < ship.size and 0 <= ship.start_position[1] < ship.size):
         ship.start_position = (50, 70) 
-    print(f"Original start position of {ship.name}: {ship.start_position}")
+ 
     adjust_start_position(ship, GRID_SIZE, CELL_SIZE)
-    print(f"Adjusted start position of {ship.name}: {ship.start_position}")
+ 
     if player_board.place_ship(ship):
         placed_ships.append(ship)
-        print(f"{ship.name} successfully placed at: {ship.start_position}")
-    else:
-        print(f"Failed to place ship: {ship.name}")
+    
+ 
+     
 
 
 
-for ship in ships:
-    print(f"{ship.name} start position: {ship.start_position}")
-    if not player_board.place_ship(ship):
-        print(f"Failed to place ship: {ship.name}")
+ 
 
 dragging_ship = None
 in_menu = True 
 game_running = False
 game_started = False  
+dragging = False
+dragged_ship = None
 
-
-running = True  
+running = True
 while running:
-    for event in pygame.event.get():
+    events = pygame.event.get()
+    for event in events:
         if event.type == pygame.QUIT:
-            running = False 
-
-       
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            logging.debug(f"Mouse Button Down at {event.pos}")
+            for ship in ships:
+                if ship.rect.collidepoint(event.pos):
+                    dragging = True
+                    dragged_ship = ship
+                    ship.drag_offset_x = ship.rect.x - event.pos[0]
+                    ship.drag_offset_y = ship.rect.y - event.pos[1]
+                    logging.debug(f"Started dragging {ship.name} from {ship.rect.topleft}")
+                    break
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if dragging:
+                logging.debug("Mouse Button Up")
+                dragging = False
+                dragged_ship = None
+        elif event.type == pygame.MOUSEMOTION:
+            if dragging and dragged_ship is not None:
+                new_x = event.pos[0] + dragged_ship.drag_offset_x
+                new_y = event.pos[1] + dragged_ship.drag_offset_y
+                dragged_ship.rect.topleft = (new_x, new_y)
+                logging.debug(f"Dragging {dragged_ship.name} to {dragged_ship.rect.topleft}")
 
     if in_menu:
         menu.draw()
@@ -112,48 +131,28 @@ while running:
         if menu_event == "start_game":
             in_menu = False
             game_running = True
-            game_started = True  
+            game_started = True
         elif menu_event == "exit":
             running = False
 
     if game_started:
-
-        screen.fill(WHITE)
-
-      
-        player_board.draw(screen, CELL_SIZE, offset=(20, 50))  
-        computer_board.draw(screen, CELL_SIZE, offset=(450, 50)) 
-       
-        print(f"Player board initialized with size: {player_board.size}")
-        print(f"Computer board initialized with size: {computer_board.size}")
+        screen.fill(WHITE)  # Clear screen before drawing
+        player_board.draw(screen, CELL_SIZE, offset=(20, 50))
+        computer_board.draw(screen, CELL_SIZE, offset=(450, 50))
         player_board.draw_ships_below_board(screen, ships, CELL_SIZE)
-       
         font = pygame.font.Font(None, TEXT_FONT_SIZE)
-        show_message(screen, "Player Board", font, BLACK, (150, 20)) 
-        show_message(screen, "Computer Board", font, BLACK, (500, 20)) 
-
-    
-        dragging_ship = handle_drag_and_drop(dragging_ship, player_board.size, event, dragging_ship)
-        game_started = False
+        show_message(screen, "Player Board", font, BLACK, (150, 20))
+        show_message(screen, "Computer Board", font, BLACK, (500, 20))
+        game_started = False  # Reset game_started to prevent reinitializing the boards unnecessarily
 
     if game_running:
-           
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            cell_pos = (
-                (mouse_pos[0] - 350) // CELL_SIZE,
-                (mouse_pos[1] - 50) // CELL_SIZE
-            ) 
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                cell_pos = ((mouse_pos[0] - 350) // CELL_SIZE, (mouse_pos[1] - 50) // CELL_SIZE)
 
-            if 0 <= cell_pos[0] < computer_board.size and 0 <= cell_pos[1] < computer_board.size:
-                hit = computer_board.check_shot(cell_pos) 
-                if hit:
-                    show_message(screen, "Hit!", font, RED, (450, 450), duration=1)
-                else:
-                    show_message(screen, "Miss!", font, BLUE, (450, 450), duration=1)
+    # Update display after all processing
+    pygame.display.flip()
+    logging.debug("Screen updated")
 
-
-
-        pygame.display.flip()
-
-pygame.quit() 
+pygame.quit()

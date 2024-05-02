@@ -42,4 +42,4 @@ class AI:
 
 ai_player = AI()
 next_move = ai_player.make_move()
-print(f"AI shoots at {next_move}")
+ 

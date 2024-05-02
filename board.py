@@ -16,17 +16,17 @@ class Board:
         Places a ship on the board if the positions are valid.
         """
         positions = ship.get_positions()  
-        print(f"Placing ship: {ship.name} at positions: {positions}")
+      
 
        
         if all(self.is_within_bounds(pos) and not self.grid[pos[1]][pos[0]] for pos in positions):
             for pos in positions:
                 self.grid[pos[1]][pos[0]] = ship  
             self.ships.append(ship)  
-            print(f"Ship {ship.name} placed successfully")
+          
             return True
         else:
-            print(f"Failed to place ship {ship.name} at positions: {positions}")
+           
             return False
 
     def is_within_bounds(self, position):
@@ -51,7 +51,7 @@ class Board:
 
 
         for ship in self.ships:
-            print(f"Drawing {ship.name} at {ship.start_position}")
+     
             ship.draw(screen) 
 
 
