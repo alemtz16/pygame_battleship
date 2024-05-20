@@ -26,7 +26,8 @@ for ship_info in FLEET.values():
         size=ship_info['size'],
         orientation=ship_info['orientation'],
         start_position=(ship_info['position'][0], ship_info['position'][1]),
-        image_path=ship_info['image_path']
+        image_path=ship_info['image_path'],
+        start_cell_position=(ship_info['position'][0], ship_info['position'][1]) 
     )
     player_board.add_ship(new_ship)
     ships.append(new_ship)
@@ -74,12 +75,14 @@ while running:
             game_state = 'GAME'
             logging.debug("Transitioning to GAME state.")
             for ship in ships:
-                ship.update_image(CELL_SIZE)
+                ship.update_position(ship.start_cell_position, CELL_SIZE2)
+                ship.update_image(CELL_SIZE2)
+            screen = pygame.display.set_mode((920, WINDOW_HEIGHT))
 
     elif game_state == 'GAME':
-        player_board.draw(screen, CELL_SIZE, offset=(20, 100))  # Draw the player board in game state
-        computer_board.draw(screen, CELL_SIZE, offset=(450, 100))  # Draw the computer board in game state
-        # Additional game logic here
+        player_board.draw(screen, CELL_SIZE2, offset=(50, 100),title="Player Board")   
+        computer_board.draw(screen, CELL_SIZE2, offset=(480, 100),title="Computer Board")  
+     
 
     pygame.display.flip()
 
