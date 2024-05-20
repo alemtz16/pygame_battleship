@@ -1,6 +1,6 @@
 import pygame
 import logging
-from settings import CELL_SIZE, BLACK
+from settings import CELL_SIZE, CELL_SIZE2, BLACK
 
 class Board:
     def __init__(self, size, show_ships=True):
@@ -14,8 +14,12 @@ class Board:
         self.ships.append(ship)
         logging.debug(f"Ship {ship.name} added to the board at {ship.rect.topleft}.")
 
-    def draw(self, screen, cell_size, offset=(0, 0)):
+    def draw(self, screen, cell_size, offset=(0, 0), title=""):
         logging.debug("Starting to draw the board.")
+        font = pygame.font.Font(None, 36)
+        title_surface = font.render(title, True, BLACK)
+        screen.blit(title_surface, (offset[0], offset[1] - 40))
+
         for y in range(self.size):
             for x in range(self.size):
                 rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)

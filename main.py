@@ -45,32 +45,40 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+    screen.fill(WHITE)  # Clear the screen before drawing
+
     if game_state == 'MENU':
         menu_action = menu.handle_events(events)  # Pass the events to the menu for processing
         if menu_action == 'start_game':
             game_state = 'SETUP'
             logging.debug("Transitioning to SETUP state.")
+            for ship in ships:
+                ship.update_image(CELL_SIZE2)
         elif menu_action == 'exit':
             running = False
-
-    screen.fill(WHITE)  # Clear the screen before drawing
 
     if game_state == 'MENU':
         menu.draw()
     elif game_state == 'SETUP':
-        player_board.draw(screen, CELL_SIZE, offset=(20, 50))  # Draw the player board
+        player_board.draw(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")  # Draw the player board
         for ship in player_board.ships:
             ship.draw(screen)
             for event in events:
-                ship.handle_mouse_event(event)
+                for ship in ships:
+                    ship.handle_mouse_event(event,ships)
+                for ship in ships:
+                    if ship.selected:
+                        ship.handle_keyboard_event(event)
 
         if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.Font(None, 36)) and pygame.mouse.get_pressed()[0]:
             game_state = 'GAME'
             logging.debug("Transitioning to GAME state.")
+            for ship in ships:
+                ship.update_image(CELL_SIZE)
 
     elif game_state == 'GAME':
-        player_board.draw(screen, CELL_SIZE, offset=(20, 50))  # Draw the player board in game state
-        computer_board.draw(screen, CELL_SIZE, offset=(450, 50))  # Draw the computer board in game state
+        player_board.draw(screen, CELL_SIZE, offset=(20, 100))  # Draw the player board in game state
+        computer_board.draw(screen, CELL_SIZE, offset=(450, 100))  # Draw the computer board in game state
         # Additional game logic here
 
     pygame.display.flip()

@@ -47,10 +47,10 @@ def handle_drag_and_drop(ship, board_size, event, dragging_ship):
 
     if event.type == pygame.MOUSEBUTTONDOWN and not dragging_ship:
         ship_rect = pygame.Rect(
-            ship.start_position[0] * CELL_SIZE,
-            ship.start_position[1] * CELL_SIZE,
-            ship.size * CELL_SIZE if ship.orientation == 'horizontal' else CELL_SIZE,
-            ship.size * CELL_SIZE if ship.orientation == 'vertical' else CELL_SIZE
+            ship.start_position[0] * CELL_SIZE2,
+            ship.start_position[1] * CELL_SIZE2,
+            ship.size * CELL_SIZE2 if ship.orientation == 'horizontal' else CELL_SIZE2,
+            ship.size * CELL_SIZE2 if ship.orientation == 'vertical' else CELL_SIZE2
         )
         if ship_rect.collidepoint(mouse_pos):
             dragging_ship = ship
