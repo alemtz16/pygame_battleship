@@ -4,7 +4,7 @@ from settings import *
 from menu import GameMenu
 from board import Board
 from ship import Ship
-from gui_helpers import draw_button, button_click_event
+from gui_helpers import draw_button
 from fleet_config import FLEET
 
 # Setup logging
@@ -28,7 +28,8 @@ for ship_info in FLEET.values():
         start_position=(ship_info['position'][0], ship_info['position'][1]),
         image_path=ship_info['image_path']
     )
-    player_board.add_ship(new_ship)  # Make sure ships are added to the board
+    player_board.add_ship(new_ship)
+    ships.append(new_ship)
 
 game_state = 'MENU'  # Start with the menu
 next_button = pygame.Rect(700, 550, 100, 50)  # Example position and size for 'Next' button
@@ -38,32 +39,31 @@ clock = pygame.time.Clock()  # Control the frame rate
 # Main game loop
 running = True
 while running:
-    clock.tick(60) 
+    clock.tick(60)  # Ensure the game runs at 60 FPS
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
+            running = False
 
-        if game_state == 'MENU':
-            menu_action = menu.handle_events(events)  # Pass the events to the menu for processing
-            if menu_action == 'start_game':
-                game_state = 'SETUP'
-                logging.debug("Transitioning to SETUP state.")
-            elif menu_action == 'exit':
-                pygame.quit()
-                exit()
+    if game_state == 'MENU':
+        menu_action = menu.handle_events(events)  # Pass the events to the menu for processing
+        if menu_action == 'start_game':
+            game_state = 'SETUP'
+            logging.debug("Transitioning to SETUP state.")
+        elif menu_action == 'exit':
+            running = False
 
-        elif game_state == 'SETUP':
-            for ship in ships:
-                ship.handle_mouse_event(event)  # Each ship handles its mouse events
+    screen.fill(WHITE)  # Clear the screen before drawing
 
-    screen.fill(WHITE)
     if game_state == 'MENU':
         menu.draw()
     elif game_state == 'SETUP':
         player_board.draw(screen, CELL_SIZE, offset=(20, 50))  # Draw the player board
-        
+        for ship in player_board.ships:
+            ship.draw(screen)
+            for event in events:
+                ship.handle_mouse_event(event)
+
         if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.Font(None, 36)) and pygame.mouse.get_pressed()[0]:
             game_state = 'GAME'
             logging.debug("Transitioning to GAME state.")
@@ -74,6 +74,5 @@ while running:
         # Additional game logic here
 
     pygame.display.flip()
-    clock.tick(60)  # Ensure the game runs at 60 FPS
 
 pygame.quit()
