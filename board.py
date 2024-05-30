@@ -29,7 +29,7 @@ class Board:
                 x_num = int(x) - 1
                 y_num = ord(y) - 65
                 if x_num < 0 or x_num >= self.size or y_num < 0 or y_num >= self.size:
-                    logging.debug(f"Ship {ship.name} out of bounds at position ({x}, {y})")
+                   
                     return False
         return True
     
@@ -41,7 +41,7 @@ class Board:
                 x_num = int(x) - 1  
                 y_num = ord(y) - 65  
                 if x_num < 0 or x_num >= self.size or y_num < 0 or y_num >= self.size:
-                    logging.debug(f"Ship {ship.name} out of bounds at position ({x}, {y})")
+                  
                     out_of_bounds_ships.append(ship.name)
                     all_within_bounds = False
                     break

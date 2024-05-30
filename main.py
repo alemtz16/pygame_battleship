@@ -4,9 +4,9 @@ from settings import *
 from menu import GameMenu
 from board import Board
 from ship import Ship
-from gui_helpers import draw_button
+from gui_helpers import draw_button, show_turn_selection_popup, manual_turn_selection, random_turn_selection
 from fleet_config import FLEET
-
+import random
 import time
 
 # Add a variable to track the alert display time
@@ -73,17 +73,45 @@ while running:
                 if ship.selected:
                     ship.handle_keyboard_event(event)
 
+
+        instruction_rect = pygame.Rect(460, 450, 334, 50)
+        pygame.draw.rect(screen, (200, 200, 200), instruction_rect)
+        font = pygame.font.Font(None, 24)
+        instruction_text = "Use UP and DOWN arrows to rotate ships"
+        text_surface = font.render(instruction_text, True, (0, 0, 0))
+        screen.blit(text_surface, (instruction_rect.x + 10, instruction_rect.y + 10))
+
         if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.Font(None, 36)) and pygame.mouse.get_pressed()[0]:
             within_bounds, out_of_bounds_ships = player_board.all_ships_within_bounds()
             overlapping_ships = player_board.check_for_overlaps()
             
             if within_bounds and not overlapping_ships:
+                choice = show_turn_selection_popup(screen)
+                if choice == 'manual':
+                    starter = manual_turn_selection(screen)
+                    print(f"{starter.capitalize()} will start the game")
+                elif choice == 'random':
+                    starter = random_turn_selection(screen)
+                    print(f"{starter.capitalize()} will start the game")
+
+
                 game_state = 'GAME'
                 logging.debug("Transitioning to GAME state.")
                 for ship in ships:
                     ship.update_position(ship.start_cell_position, CELL_SIZE2)
                     ship.update_image(CELL_SIZE2)
                 screen = pygame.display.set_mode((950, WINDOW_HEIGHT))
+
+
+
+
+
+
+
+
+
+
+
             else:
                 if not within_bounds:
                     logging.debug(f"Ships out of bounds: {', '.join(out_of_bounds_ships)}")
@@ -119,9 +147,7 @@ while running:
         for ship in player_board.ships:
             occupied_positions.extend(ship.get_occupied_positions())
 
-        print("Posiciones ocupadas en el tablero:")
-        for position in occupied_positions:
-            print(position)
+ 
      
 
     pygame.display.flip()

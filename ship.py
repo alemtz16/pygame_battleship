@@ -18,7 +18,7 @@ class Ship:
         self.update_image(CELL_SIZE2)
 
     def update_image(self, cell_size):
-        logging.debug(f"Updating image for {self.name} with orientation {self.orientation}")
+     
         if self.orientation == 'horizontal':
             width = cell_size * self.size
             height = cell_size
@@ -31,7 +31,7 @@ class Ship:
             original_image = pygame.transform.rotate(original_image, -90)  # Rotar la imagen 90 grados para orientación vertical
         self.image = pygame.transform.scale(original_image, (width, height))
         self.rect = self.image.get_rect(topleft=self.start_position)
-        logging.debug(f"Image updated for {self.name}: {self.rect}")
+     
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
@@ -45,7 +45,7 @@ class Ship:
         else:
             for i in range(self.size):
                 occupied_positions.append((cell_position[0], chr(cell_position[1] + i + 65)))
-        logging.debug(f"{self.name} updated positions: {occupied_positions}")
+       
 
     def get_occupied_positions(self):
         cell_x = self.rect.topleft[0] // CELL_SIZE2
@@ -58,7 +58,7 @@ class Ship:
             else:
                 occupied_positions.append((cell_x, chr(cell_y + i + 65-2)))
 
-        logging.debug(f"{self.name} positions: {occupied_positions}")
+   
         return occupied_positions
 
     def handle_mouse_event(self, event, ships):
@@ -84,7 +84,7 @@ class Ship:
     def handle_keyboard_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                logging.debug(f"Before orientation change: {self.orientation}")
+            
                 self.orientation = 'vertical' if self.orientation == 'horizontal' else 'horizontal'
-                logging.debug(f"After orientation change: {self.orientation}")
+                
                 self.update_image(CELL_SIZE2)
