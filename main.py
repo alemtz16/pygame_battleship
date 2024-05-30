@@ -75,7 +75,9 @@ while running:
 
         if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.Font(None, 36)) and pygame.mouse.get_pressed()[0]:
             within_bounds, out_of_bounds_ships = player_board.all_ships_within_bounds()
-            if within_bounds:
+            overlapping_ships = player_board.check_for_overlaps()
+            
+            if within_bounds and not overlapping_ships:
                 game_state = 'GAME'
                 logging.debug("Transitioning to GAME state.")
                 for ship in ships:
@@ -83,12 +85,23 @@ while running:
                     ship.update_image(CELL_SIZE2)
                 screen = pygame.display.set_mode((950, WINDOW_HEIGHT))
             else:
-                logging.debug(f"Ships out of bounds: {', '.join(out_of_bounds_ships)}")
-                alert_message = f"Ships out of bounds: {', '.join(out_of_bounds_ships)}"
+                if not within_bounds:
+                    logging.debug(f"Ships out of bounds: {', '.join(out_of_bounds_ships)}")
+                    alert_message = f"Ships out of bounds: {', '.join(out_of_bounds_ships)}"
+                elif overlapping_ships:
+                    logging.debug(f"Ships overlapping: {', '.join(overlapping_ships)}")
+                    alert_message = f"Ships overlapping: {', '.join(overlapping_ships)}"
                 font = pygame.font.Font(None, 36)
                 text_surface = font.render(alert_message, True, (255, 0, 0))
                 screen.blit(text_surface, (50, 520))
                 alert_start_time = time.time()
+
+
+
+
+
+
+
         if alert_start_time is not None:
             elapsed_time = time.time() - alert_start_time
             if elapsed_time < alert_duration:

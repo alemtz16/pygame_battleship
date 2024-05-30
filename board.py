@@ -47,7 +47,21 @@ class Board:
                     break
         return all_within_bounds, out_of_bounds_ships
 
-
+    def check_for_overlaps(self):
+        position_count = {}
+        overlapping_ships = []
+        for ship in self.ships:
+            for position in ship.get_occupied_positions():
+                if position in position_count:
+                    position_count[position].append(ship.name)
+                else:
+                    position_count[position] = [ship.name]
+        
+        for positions, ships in position_count.items():
+            if len(ships) > 1:
+                overlapping_ships.extend(ships)
+        
+        return list(set(overlapping_ships))   
 
     def draw(self, screen, cell_size, offset=(0, 0), title="Player Board"):
         font = pygame.font.Font(None, 36)
