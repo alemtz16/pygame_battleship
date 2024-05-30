@@ -34,14 +34,19 @@ class Board:
         return True
     
     def all_ships_within_bounds(self):
+        out_of_bounds_ships = []
+        all_within_bounds = True
         for ship in self.ships:
             for x, y in ship.get_occupied_positions():
                 x_num = int(x) - 1  
                 y_num = ord(y) - 65  
                 if x_num < 0 or x_num >= self.size or y_num < 0 or y_num >= self.size:
                     logging.debug(f"Ship {ship.name} out of bounds at position ({x}, {y})")
-                    return False
-        return True
+                    out_of_bounds_ships.append(ship.name)
+                    all_within_bounds = False
+                    break
+        return all_within_bounds, out_of_bounds_ships
+
 
 
     def draw(self, screen, cell_size, offset=(0, 0), title="Player Board"):

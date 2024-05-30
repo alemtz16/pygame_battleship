@@ -7,7 +7,11 @@ from ship import Ship
 from gui_helpers import draw_button
 from fleet_config import FLEET
 
- 
+import time
+
+# Add a variable to track the alert display time
+alert_start_time = None
+alert_duration = 30
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 pygame.init()
@@ -70,7 +74,8 @@ while running:
                     ship.handle_keyboard_event(event)
 
         if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.Font(None, 36)) and pygame.mouse.get_pressed()[0]:
-            if player_board.all_ships_within_bounds():
+            within_bounds, out_of_bounds_ships = player_board.all_ships_within_bounds()
+            if within_bounds:
                 game_state = 'GAME'
                 logging.debug("Transitioning to GAME state.")
                 for ship in ships:
@@ -78,7 +83,20 @@ while running:
                     ship.update_image(CELL_SIZE2)
                 screen = pygame.display.set_mode((950, WINDOW_HEIGHT))
             else:
-                logging.debug("Some ships are out of bounds.")
+                logging.debug(f"Ships out of bounds: {', '.join(out_of_bounds_ships)}")
+                alert_message = f"Ships out of bounds: {', '.join(out_of_bounds_ships)}"
+                font = pygame.font.Font(None, 36)
+                text_surface = font.render(alert_message, True, (255, 0, 0))
+                screen.blit(text_surface, (50, 520))
+                alert_start_time = time.time()
+        if alert_start_time is not None:
+            elapsed_time = time.time() - alert_start_time
+            if elapsed_time < alert_duration:
+                font = pygame.font.Font(None, 36)
+                text_surface = font.render(alert_message, True, (255, 0, 0))
+                screen.blit(text_surface, (50, 520))
+            else:
+                alert_start_time = None 
 
     elif game_state == 'GAME':
         player_board.draw(screen, CELL_SIZE2, offset=(50, 100),title="Player Board")   
