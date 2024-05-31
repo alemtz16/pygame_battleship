@@ -4,24 +4,32 @@ from settings import *
 from menu import GameMenu
 from board import Board
 from ship import Ship
-from gui_helpers import draw_button, show_turn_selection_popup, manual_turn_selection, random_turn_selection
+from gui_helpers import draw_button, show_turn_selection_popup, manual_turn_selection, random_turn_selection, show_confirmation_popup
 from fleet_config import FLEET
 import random
 import time
-
+from player import player_turn
+from ai_computer import AI, process_ai_attack 
 # Add a variable to track the alert display time
 alert_start_time = None
 alert_duration = 30
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
 pygame.init()
+pygame.font.init()
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+try:
+    FONT_NAME = pygame.font.Font("Anton-Regular.ttf", 36)
+except FileNotFoundError:
+    logging.error("Font file not found. Make sure 'Anton-Regular.ttf' is in the 'assets/fonts/' directory.")
+    FONT_NAME = pygame.font.Font(None, 36)  # Fallback to default font
+ 
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Battleship")
 
 menu = GameMenu(screen)
 player_board = Board(10)
 computer_board = Board(10, show_ships=False)   
-
+cursor_x, cursor_y = 0, 0
+cursor_active = False
  
 ships = []
 for ship_info in FLEET.values():
@@ -41,7 +49,10 @@ next_button = pygame.Rect(700, 550, 100, 50)
 
 clock = pygame.time.Clock()  
 
- 
+ai_player = AI()
+cell=ai_player.place_ships([5, 4, 3, 2]) 
+
+next_button = pygame.Rect(700, 550, 100, 50)
 running = True
 while running:
     clock.tick(60)   
@@ -101,16 +112,14 @@ while running:
                     ship.update_position(ship.start_cell_position, CELL_SIZE2)
                     ship.update_image(CELL_SIZE2)
                 screen = pygame.display.set_mode((950, WINDOW_HEIGHT))
+                current_turn = starter
 
-
-
-
-
-
-
-
-
-
+                print("AI Ship Positions:")
+                for ship_positions in ai_player.get_ship_positions():
+                    formatted_positions = [f"{chr(y + 65)}{x + 1}" for x, y in ship_positions]
+                    print(f"Ship at {', '.join(formatted_positions)}")
+                for ship_positions in ai_player.get_ship_positions():
+                    print(ship_positions)
 
             else:
                 if not within_bounds:
@@ -142,13 +151,33 @@ while running:
     elif game_state == 'GAME':
         player_board.draw(screen, CELL_SIZE2, offset=(50, 100),title="Player Board")   
         computer_board.draw(screen, CELL_SIZE2, offset=(520, 100),title="Computer Board")  
+
+       
         occupied_positions = []
- 
+
         for ship in player_board.ships:
             occupied_positions.extend(ship.get_occupied_positions())
+        
+        if current_turn == 'player':
+            turn_over, cursor_x, cursor_y = player_turn(events, screen, computer_board, cursor_x, cursor_y, cell)
+            if turn_over:
+                if computer_board.check_game_over():
+                    print("Player wins!")
+                    running = False
+                else:
+                    current_turn = 'computer'
+        elif current_turn == 'computer':
+            process_ai_attack(ai_player, player_board)
+            if player_board.check_game_over():
+                print("AI wins!")
+                running = False
+            else:
+                current_turn = 'player'
 
- 
-     
+        font = pygame.font.Font(None, 36)
+        turn_message = f"{current_turn.capitalize()}'s turn"
+        turn_surface = font.render(turn_message, True, RED)
+        screen.blit(turn_surface, (500, 500))
 
     pygame.display.flip()
 

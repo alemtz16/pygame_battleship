@@ -1,6 +1,6 @@
 import pygame
 import logging
-from settings import CELL_SIZE, CELL_SIZE2, BLACK
+from settings import CELL_SIZE, CELL_SIZE2, BLACK, BLUE, RED
 
 class Board:
     def __init__(self, size, show_ships=True):
@@ -46,6 +46,8 @@ class Board:
                     all_within_bounds = False
                     break
         return all_within_bounds, out_of_bounds_ships
+    
+     
 
     def check_for_overlaps(self):
         position_count = {}
@@ -96,7 +98,18 @@ class Board:
                 rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
                 pygame.draw.rect(screen, BLACK, rect, 1)
 
+                if self.grid[y][x] == 'X':
+                    pygame.draw.rect(screen, RED, rect)
+                elif self.grid[y][x] == 'O':
+                    pygame.draw.rect(screen, BLUE, rect)
  
         if self.show_ships:
             for ship in self.ships:
                 ship.draw(screen)
+
+    def check_game_over(self):
+        for row in self.grid:
+            for cell in row:
+                if isinstance(cell, str) and cell not in ['X', 'O']:
+                    return False
+        return True

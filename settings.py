@@ -14,10 +14,10 @@ GRAY = (128, 128, 128)
 RED = (255, 0, 0)  
 GREEN = (0, 255, 0)  
 BLUE = (0, 0, 255)  
-
+HIGHLIGHT_COLOR=(178,34,34)
  
 GRID_SIZE = 10   
-FONT_NAME = "Arial"   
+ 
 TEXT_FONT_SIZE = 24   
 TITLE_FONT_SIZE = 36   
 

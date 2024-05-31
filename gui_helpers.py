@@ -87,8 +87,27 @@ def manual_turn_selection(screen):
                 exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if computer_button.collidepoint(event.pos):
+
+                    result_text = font.render(f"Computer starts the game!", True, BLACK)
+                    result_rect = result_text.get_rect(center=(manual_rect.x + manual_rect.width // 2,  manual_rect.y + manual_rect.height // 2))
+
+                    screen.fill(GRAY, manual_rect)
+                    pygame.draw.rect(screen, BLACK, manual_rect, 2)
+                    screen.blit(result_text, result_rect)
+
+                    pygame.display.flip()
+                    pygame.time.wait(2000)
                     return 'computer'
                 elif player_button.collidepoint(event.pos):
+                    result_text = font.render(f"Player starts the game!", True, BLACK)
+                    result_rect = result_text.get_rect(center=(manual_rect.x + manual_rect.width // 2, manual_rect.y + manual_rect.height // 2))
+
+                    screen.fill(GRAY, manual_rect)
+                    pygame.draw.rect(screen, BLACK, manual_rect, 2)
+                    screen.blit(result_text, result_rect)
+
+                    pygame.display.flip()
+                    pygame.time.wait(2000)
                     return 'player'
 
 def random_turn_selection(screen):
@@ -138,6 +157,38 @@ def random_turn_selection(screen):
 
     return result.lower()
 
+
+def show_confirmation_popup(screen, row_label, col_label):
+    popup_rect = pygame.Rect(300, 200, 200, 100)
+    pygame.draw.rect(screen, GRAY, popup_rect)
+    pygame.draw.rect(screen, BLACK, popup_rect, 2)
+
+    font = pygame.font.Font(None, 24)
+    confirm_text = f"Confirm attack at {row_label}{col_label}?"
+    confirm_surface = font.render(confirm_text, True, BLACK)
+    screen.blit(confirm_surface, (popup_rect.x + 10, popup_rect.y + 10))
+
+    yes_button = pygame.Rect(popup_rect.x + 20, popup_rect.y + 50, 60, 30)
+    no_button = pygame.Rect(popup_rect.x + 120, popup_rect.y + 50, 60, 30)
+    draw_button(screen, "Yes", yes_button, BLUE, RED, font)
+    draw_button(screen, "No", no_button, BLUE, RED, font)
+
+    pygame.display.flip()
+
+    confirming = True
+    while confirming:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if yes_button.collidepoint(event.pos):
+                    print(f"Attack confirmed at {row_label}{col_label}")
+                    confirming = False
+                    return True  
+                elif no_button.collidepoint(event.pos):
+                    confirming = False
+                    return False   
 
 def button_click_event(button_rect, event):
     """
