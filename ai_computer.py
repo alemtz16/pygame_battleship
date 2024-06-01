@@ -1,6 +1,4 @@
 import random
- 
-
 
 class AI:
     def __init__(self, grid_size=10):
@@ -9,12 +7,11 @@ class AI:
         self.shots_fired = [[False for _ in range(grid_size)] for _ in range(grid_size)]
         self.high_scores = []
         self.ships = []
-        self.grid = [[None for _ in range(grid_size)] for _ in range(grid_size)]
+        self.grid = [['' for _ in range(grid_size)] for _ in range(grid_size)]
         self.heatmap = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
         self.init_heatmap()
 
     def init_heatmap(self):
-        
         pattern = [
             [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
             [5, 1, 1, 1, 1, 1, 1, 1, 1, 5],
@@ -49,6 +46,7 @@ class AI:
                         else:
                             self.grid[y + i][x] = 'S'
                     placed = True
+        self.print_grid()
 
     def find_best_position(self, size, orientation):
         min_heat = float('inf')
@@ -74,10 +72,10 @@ class AI:
     def can_place_ship(self, x, y, size, orientation):
         for i in range(size):
             if orientation == 'horizontal':
-                if x + i >= self.grid_size or self.grid[y][x + i] is not None:
+                if x + i >= self.grid_size or self.grid[y][x + i] != '':
                     return False
             else:
-                if y + i >= self.grid_size or self.grid[y + i][x] is not None:
+                if y + i >= self.grid_size or self.grid[y + i][x] != '':
                     return False
         return True
 
@@ -93,6 +91,7 @@ class AI:
                     positions.append((x, y + i))
             ship_positions.append(positions)
         return ship_positions
+
     def print_grid(self):
         for row in self.grid:
             print(' '.join(['S' if cell == 'S' else '.' for cell in row]))
@@ -118,31 +117,26 @@ class AI:
     def mark_shot(self, x, y, hit=False):
         self.shots_fired[y][x] = True
         if hit:
-            
             pass
 
     def make_move(self):
-
         best_shot = self.find_best_shot()
         self.mark_shot(best_shot[1], best_shot[0])
         return best_shot
 
-     
- 
- 
 def process_ai_attack(ai_player, player_board):
-        ai_move = ai_player.make_move()
-        x, y = ai_move
-        cell = player_board.grid[y][x]
-        if cell:
-            print(f"AI hit at {chr(y + 65)}{x + 1}!")
-            player_board.grid[y][x] = 'X'  
-            ai_player.mark_shot(x, y, hit=True)
-        else:
-            print(f"AI miss at {chr(y + 65)}{x + 1}.")
-            player_board.grid[y][x] = 'O'  
-            ai_player.mark_shot(x, y, hit=False)
+    ai_move = ai_player.make_move()
+    x, y = ai_move
+    cell = player_board.grid[y][x]
+    if cell:
+        print(f"AI hit at {chr(y + 65)}{x + 1}!")
+        player_board.grid[y][x] = 'X'
+        ai_player.mark_shot(x, y, hit=True)
+    else:
+        print(f"AI miss at {chr(y + 65)}{x + 1}.")
+        player_board.grid[y][x] = 'O'
+        ai_player.mark_shot(x, y, hit=False)
 
-
+# Create an instance of AI to initialize the board and place ships
 ai_player = AI()
 next_move = ai_player.make_move()

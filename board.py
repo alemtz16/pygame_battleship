@@ -53,7 +53,7 @@ class Board:
         return list(set(overlapping_ships))
 
     def draw(self, screen, cell_size, offset=(0, 0), title="Player Board"):
-        font = pygame.font.SysFont('Arial', 24)
+        font = pygame.font.SysFont(None, 36)
 
         title_surface = font.render(title, True, BLACK)
         title_width, title_height = title_surface.get_size()
