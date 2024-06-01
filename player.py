@@ -1,9 +1,9 @@
 import pygame
+from ai_computer import AI, process_ai_attack
 from gui_helpers import show_confirmation_popup
 from settings import *
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
 
 def process_player_attack(attack_position, computer_board):
     x, y = attack_position

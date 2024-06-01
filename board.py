@@ -1,6 +1,7 @@
 import pygame
 import logging
 from settings import CELL_SIZE, CELL_SIZE2, BLACK, BLUE, RED
+from ship import *
 
 class Board:
     def __init__(self, size, show_ships=True):
@@ -18,19 +19,21 @@ class Board:
     def update_grid_with_ship(self, ship):
         for position in ship.get_occupied_positions():
             x, y = position
-            x_num = int(x) - 1
-            y_num = ord(y.upper()) - 65
-            if 0 <= x_num < self.size and 0 <= y_num < self.size:
-                self.grid[y_num][x_num] = ship.name
+            x = x-1
+            y = y-1
+            if 0 <= x < self.size and 0 <= y < self.size:
+                self.grid[y][x] = 'S'
+
+    def print_grid(self) -> None:
+        for row in self.grid:
+            print(' '.join(['S' if cell == 'S' else '.' for cell in row]))
 
     def all_ships_within_bounds(self):
         out_of_bounds_ships = []
         all_within_bounds = True
         for ship in self.ships:
             for x, y in ship.get_occupied_positions():
-                x_num = int(x) - 1
-                y_num = ord(y) - 65
-                if x_num < 0 or x_num >= self.size or y_num < 0 or y_num >= self.size:
+                if x < 0 or x > self.size or y < 0 or y > self.size:
                     out_of_bounds_ships.append(ship.name)
                     all_within_bounds = False
                     break
@@ -93,6 +96,11 @@ class Board:
     def check_game_over(self):
         for row in self.grid:
             for cell in row:
-                if isinstance(cell, str) and cell not in ['X', 'O']:
+                if isinstance(cell, str) and cell == 'S':  # Check for unhit ship parts
                     return False
         return True
+
+    def print_grid(self):
+        for row in self.grid:
+            print(' '.join(['S' if cell == 'S' else '.' for cell in row]))
+

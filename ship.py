@@ -49,16 +49,15 @@ class Ship:
 
     def get_occupied_positions(self):
         cell_x = self.rect.topleft[0] // CELL_SIZE2
-        cell_y = self.rect.topleft[1] // CELL_SIZE2
+        cell_y = self.rect.topleft[1] // CELL_SIZE2 -1
         occupied_positions = []
 
         for i in range(self.size):
             if self.orientation == 'horizontal':
-                occupied_positions.append((cell_x + i, chr(cell_y + 65-2)))
+                occupied_positions.append((cell_x + i, cell_y))
             else:
-                occupied_positions.append((cell_x, chr(cell_y + i + 65-2)))
+                occupied_positions.append((cell_x, cell_y + i))
 
-   
         return occupied_positions
 
     def handle_mouse_event(self, event, ships):

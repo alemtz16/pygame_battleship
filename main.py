@@ -47,13 +47,13 @@ next_button = pygame.Rect(700, 550, 100, 50)
 clock = pygame.time.Clock()
 
 ai_player = AI()
-cell = ai_player.place_ships([5, 4, 3, 2])
+ai_player.place_ships([5, 4, 3, 2])
 
 # Variables for turn popup
 turn_popup_start_time = None
 turn_popup_duration = 2  # seconds
 show_turn_popup = False
-current_turn = ''
+current_turn = 'player'  # This variable keeps track of whose turn it is
 
 running = True
 while running:
@@ -123,6 +123,7 @@ while running:
             within_bounds, out_of_bounds_ships = player_board.all_ships_within_bounds()
             overlapping_ships = player_board.check_for_overlaps()
 
+            #Si todos los barcos se colocaron correctamente
             if within_bounds and not overlapping_ships:
                 choice = show_turn_selection_popup(screen)
                 if choice == 'manual':
@@ -137,11 +138,27 @@ while running:
                 for ship in ships:
                     ship.update_position(ship.start_cell_position, CELL_SIZE2)
                     ship.update_image(CELL_SIZE2)
+
+                # Update the player's board grid to mark ship positions
+                player_board.grid = [[None for _ in range(player_board.size)] for _ in range(player_board.size)]
+                for ship in player_board.ships:
+                    player_board.update_grid_with_ship(ship)
+                player_board.print_grid() #
+
                 screen = pygame.display.set_mode((950, WINDOW_HEIGHT))
                 current_turn = starter
 
                 show_turn_popup = True
                 turn_popup_start_time = time.time()
+
+                # Print player ship positions
+                print("Player Ship Positions:")
+                for ship in player_board.ships:
+                    ship_positions = ship.get_occupied_positions()
+                    formatted_positions = [f"{chr(y + 64)}{x}" for x, y in ship_positions]
+                    print(f"Ship at {', '.join(formatted_positions)}")
+                for ship in player_board.ships:
+                    print(ship.get_occupied_positions())
 
                 print("AI Ship Positions:")
                 for ship_positions in ai_player.get_ship_positions():
@@ -149,7 +166,9 @@ while running:
                     print(f"Ship at {', '.join(formatted_positions)}")
                 for ship_positions in ai_player.get_ship_positions():
                     print(ship_positions)
+                ai_player.print_grid()
 
+            #error si no se colocaron correctamente
             else:
                 if not within_bounds:
                     logging.debug(f"Ships out of bounds: {', '.join(out_of_bounds_ships)}")
@@ -174,6 +193,7 @@ while running:
     elif game_state == 'GAME':
         player_board.draw(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")
         computer_board.draw(screen, CELL_SIZE2, offset=(520, 100), title="Computer Board")
+        # After placing ships
 
         if show_turn_popup:
             elapsed_time = time.time() - turn_popup_start_time
@@ -190,14 +210,10 @@ while running:
             else:
                 show_turn_popup = False
 
-        occupied_positions = []
-        for ship in player_board.ships:
-            occupied_positions.extend(ship.get_occupied_positions())
-
         if current_turn == 'player' and not show_turn_popup:
-            turn_over, cursor_x, cursor_y = player_turn(events, screen, computer_board, cursor_x, cursor_y)
+            turn_over, cursor_x, cursor_y = player_turn(events, screen, ai_player, cursor_x, cursor_y)
             if turn_over:
-                if computer_board.check_game_over():
+                if ai_player.check_game_over():
                     print("Player wins!")
                     running = False
                 else:
