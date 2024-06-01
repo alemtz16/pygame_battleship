@@ -45,7 +45,7 @@ def player_turn(events, screen, computer_board, cursor_x, cursor_y):
     return False, cursor_x, cursor_y  # Turn continues
 
 
-def player_turn(events, screen, computer_board, cursor_x, cursor_y):
+def player_turn(events, screen, computer_board, cursor_x, cursor_y,cell):
     turn_over = False
 
     for event in events:

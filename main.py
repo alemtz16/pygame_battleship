@@ -9,28 +9,25 @@ from fleet_config import FLEET
 import random
 import time
 from player import player_turn
-from ai_computer import AI, process_ai_attack 
+from ai_computer import AI, process_ai_attack
+
 # Add a variable to track the alert display time
 alert_start_time = None
 alert_duration = 30
+
 pygame.init()
 pygame.font.init()
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-try:
-    FONT_NAME = pygame.font.Font("Anton-Regular.ttf", 36)
-except FileNotFoundError:
-    logging.error("Font file not found. Make sure 'Anton-Regular.ttf' is in the 'assets/fonts/' directory.")
-    FONT_NAME = pygame.font.Font(None, 36)  # Fallback to default font
- 
+
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption("Battleship")
 
 menu = GameMenu(screen)
 player_board = Board(10)
-computer_board = Board(10, show_ships=False)   
+computer_board = Board(10, show_ships=False)
 cursor_x, cursor_y = 0, 0
 cursor_active = False
- 
+
 ships = []
 for ship_info in FLEET.values():
     new_ship = Ship(
@@ -39,32 +36,32 @@ for ship_info in FLEET.values():
         orientation=ship_info['orientation'],
         start_position=(ship_info['position'][0], ship_info['position'][1]),
         image_path=ship_info['image_path'],
-        start_cell_position=(ship_info['position'][0], ship_info['position'][1]) 
+        start_cell_position=(ship_info['position'][0], ship_info['position'][1])
     )
     player_board.add_ship(new_ship)
     ships.append(new_ship)
 
-game_state = 'MENU'   
-next_button = pygame.Rect(700, 550, 100, 50)   
+game_state = 'MENU'
+next_button = pygame.Rect(700, 550, 100, 50)
 
-clock = pygame.time.Clock()  
+clock = pygame.time.Clock()
 
 ai_player = AI()
-cell=ai_player.place_ships([5, 4, 3, 2]) 
-
+cell = ai_player.place_ships([5, 4, 3, 2])
+ 
 next_button = pygame.Rect(700, 550, 100, 50)
 running = True
 while running:
-    clock.tick(60)   
+    clock.tick(60)
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.QUIT:
             running = False
 
-    screen.fill(WHITE)  
+    screen.fill(WHITE)
 
     if game_state == 'MENU':
-        menu_action = menu.handle_events(events)   
+        menu_action = menu.handle_events(events)
         if menu_action == 'start_game':
             game_state = 'SETUP'
             logging.debug("Transitioning to SETUP state.")
@@ -76,7 +73,7 @@ while running:
     if game_state == 'MENU':
         menu.draw()
     elif game_state == 'SETUP':
-        player_board.draw(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")   
+        player_board.draw(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")
         for ship in player_board.ships:
             ship.draw(screen)
             for event in events:
@@ -84,18 +81,17 @@ while running:
                 if ship.selected:
                     ship.handle_keyboard_event(event)
 
-
         instruction_rect = pygame.Rect(460, 450, 334, 50)
         pygame.draw.rect(screen, (200, 200, 200), instruction_rect)
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.SysFont(FONT_NAME, TEXT_FONT_SIZE)
         instruction_text = "Use UP and DOWN arrows to rotate ships"
         text_surface = font.render(instruction_text, True, (0, 0, 0))
         screen.blit(text_surface, (instruction_rect.x + 10, instruction_rect.y + 10))
 
-        if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.Font(None, 36)) and pygame.mouse.get_pressed()[0]:
+        if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
             within_bounds, out_of_bounds_ships = player_board.all_ships_within_bounds()
             overlapping_ships = player_board.check_for_overlaps()
-            
+
             if within_bounds and not overlapping_ships:
                 choice = show_turn_selection_popup(screen)
                 if choice == 'manual':
@@ -104,7 +100,6 @@ while running:
                 elif choice == 'random':
                     starter = random_turn_selection(screen)
                     print(f"{starter.capitalize()} will start the game")
-
 
                 game_state = 'GAME'
                 logging.debug("Transitioning to GAME state.")
@@ -128,36 +123,28 @@ while running:
                 elif overlapping_ships:
                     logging.debug(f"Ships overlapping: {', '.join(overlapping_ships)}")
                     alert_message = f"Ships overlapping: {', '.join(overlapping_ships)}"
-                font = pygame.font.Font(None, 36)
+                font = pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)
                 text_surface = font.render(alert_message, True, (255, 0, 0))
                 screen.blit(text_surface, (50, 520))
                 alert_start_time = time.time()
 
-
-
-
-
-
-
         if alert_start_time is not None:
             elapsed_time = time.time() - alert_start_time
             if elapsed_time < alert_duration:
-                font = pygame.font.Font(None, 36)
+                font = pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)
                 text_surface = font.render(alert_message, True, (255, 0, 0))
                 screen.blit(text_surface, (50, 520))
             else:
-                alert_start_time = None 
+                alert_start_time = None
 
     elif game_state == 'GAME':
-        player_board.draw(screen, CELL_SIZE2, offset=(50, 100),title="Player Board")   
-        computer_board.draw(screen, CELL_SIZE2, offset=(520, 100),title="Computer Board")  
+        player_board.draw(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")
+        computer_board.draw(screen, CELL_SIZE2, offset=(520, 100), title="Computer Board")
 
-       
         occupied_positions = []
-
         for ship in player_board.ships:
             occupied_positions.extend(ship.get_occupied_positions())
-        
+
         if current_turn == 'player':
             turn_over, cursor_x, cursor_y = player_turn(events, screen, computer_board, cursor_x, cursor_y, cell)
             if turn_over:
@@ -174,7 +161,7 @@ while running:
             else:
                 current_turn = 'player'
 
-        font = pygame.font.Font(None, 36)
+        font = pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)
         turn_message = f"{current_turn.capitalize()}'s turn"
         turn_surface = font.render(turn_message, True, RED)
         screen.blit(turn_surface, (500, 500))
