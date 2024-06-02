@@ -1,5 +1,6 @@
 import random
 from typing import List, Tuple
+from gui_helpers import  show_attack_result_popup
 
 class AI:
     def __init__(self, grid_size: int = 10):
@@ -127,7 +128,7 @@ class AI:
                     return False
         return True
 
-def process_ai_attack(ai_player: AI, player_board) -> None:
+def process_ai_attack(screen,ai_player: AI, player_board) -> None:
     ai_move = ai_player.make_move()
     x, y = ai_move
     cell = player_board.grid[y][x]
@@ -135,10 +136,12 @@ def process_ai_attack(ai_player: AI, player_board) -> None:
         print(f"AI hit at {chr(y + 65)}{x + 1}!")
         player_board.grid[y][x] = 'X'
         ai_player.mark_shot(x, y, hit=True)
+        show_attack_result_popup(screen, "AI hit a boat!", duration=2)
     else:
         print(f"AI miss at {chr(y + 65)}{x + 1}.")
         player_board.grid[y][x] = 'O'
         ai_player.mark_shot(x, y, hit=False)
+        show_attack_result_popup(screen, "AI hit water!", duration=2)
 
 # Create an instance of AI to initialize the board and place ships
 ai_player = AI()

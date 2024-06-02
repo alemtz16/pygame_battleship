@@ -211,7 +211,7 @@ while running:
                 show_turn_popup = False
 
         if current_turn == 'player' and not show_turn_popup:
-            turn_over, cursor_x, cursor_y = player_turn(events, screen, ai_player, cursor_x, cursor_y)
+            turn_over, cursor_x, cursor_y = player_turn(events, screen, ai_player, cursor_x, cursor_y,computer_board)
             if turn_over:
                 if ai_player.check_game_over():
                     print("Player wins!")
@@ -221,7 +221,7 @@ while running:
                     show_turn_popup = True
                     turn_popup_start_time = time.time()
         elif current_turn == 'computer' and not show_turn_popup:
-            process_ai_attack(ai_player, player_board)
+            process_ai_attack(screen,ai_player, player_board)
             if player_board.check_game_over():
                 print("AI wins!")
                 running = False
