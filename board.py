@@ -11,7 +11,7 @@ class Board:
         self.show_ships = show_ships
         self.row_labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
         self.column_labels = [str(i + 1) for i in range(size)]
-        self.sunk_ships = []  # Add this line
+        self.sunk_ships = []
 
     def add_ship(self, ship):
         self.ships.append(ship)
@@ -102,7 +102,9 @@ class Board:
                     return False
         return True
 
-    def print_grid(self):
-        for row in self.grid:
-            print(' '.join(['S' if cell == 'S' else '.' for cell in row]))
-
+    def check_sunk_ship(self, x: int, y: int) -> int:
+        for ship in self.ships:
+            if (x, y) in ship.get_occupied_positions():
+                if all(self.grid[pos[1]][pos[0]] == 'X' for pos in ship.get_occupied_positions()):
+                    return ship.size
+        return 0

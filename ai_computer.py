@@ -1,45 +1,64 @@
 import random
-import logging
 from typing import List, Tuple
-from gui_helpers import  show_attack_result_popup, show_ship_sunk_popup
-from ship import Ship
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+from gui_helpers import show_attack_result_popup
+
+class Coordinates:
+    def __init__(self, x=0, y=0):
+        self.x = x
+        self.y = y
+
+class GridCoordinate:
+    def __init__(self, x, y, x_val=0, y_val=0):
+        self.x = x
+        self.y = y
+        self.x_val = x_val
+        self.y_val = y_val
+        self.x_val_rev = 0
+        self.y_val_rev = 0
+        self._sumx = 0
+        self._sumy = 0
+
+    def add_xy(self, x_val, y_val):
+        self.x_val_rev = x_val
+        self.y_val_rev = y_val
+        self._sumx = self._sum(self.x_val, self.x_val_rev)
+        self._sumy = self._sum(self.y_val, self.y_val_rev)
+
+    def get_score(self):
+        result = self._sumx * self._sumy
+        if result < 80:
+            return result
+        else:
+            return 67 if not random.randint(0, 4) else 61
+
+    def _sum(self, a, b):
+        return (a + b) - abs(a - b)
+
 class AI:
     def __init__(self, grid_size: int = 10):
         self.grid_size = grid_size
-        self.dynamic_matrix = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
-        self.shots_fired = [[False for _ in range(grid_size)] for _ in range(grid_size)]
-        self.high_scores = []
-        self.ships = []
         self.grid = [['' for _ in range(grid_size)] for _ in range(grid_size)]
-        self.heatmap = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
-        self.init_heatmap()
+        self.shots_fired = [[False for _ in range(grid_size)] for _ in range(grid_size)]
+        self.ships = []
+        self._dm_size = grid_size - 1
+        self._dm = [[GridCoordinate(x, y) for x in range(grid_size)] for y in range(grid_size)]
+        self._enemy_grid = [[0 for _ in range(grid_size)] for _ in range(grid_size)]
+        self._max_size = 5
+        self.last_shot = Coordinates()
+        self.hit_list = []
+        self.ship_orientation = None
+        self.hit_direction = None
+        self.switch_direction = False
 
-    def init_heatmap(self) -> None:
-        pattern = [
-            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
-            [5, 1, 1, 1, 1, 1, 1, 1, 1, 5],
-            [5, 1, 2, 2, 2, 2, 2, 2, 1, 5],
-            [5, 1, 2, 3, 3, 3, 3, 2, 1, 5],
-            [5, 1, 2, 3, 4, 4, 3, 2, 1, 5],
-            [5, 1, 2, 3, 4, 4, 3, 2, 1, 5],
-            [5, 1, 2, 3, 3, 3, 3, 2, 1, 5],
-            [5, 1, 2, 2, 2, 2, 2, 2, 1, 5],
-            [5, 1, 1, 1, 1, 1, 1, 1, 1, 5],
-            [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]
-        ]
-        for y in range(self.grid_size):
-            for x in range(self.grid_size):
-                self.heatmap[y][x] = pattern[y][x]
-
- 
+    SHOT_FIRED = 1
+    SHIP_HIT = 2
 
     def place_ships(self, ship_sizes: List[int]) -> None:
         for size in ship_sizes:
             placed = False
             while not placed:
                 orientation = random.choice(['horizontal', 'vertical'])
-                x, y = self.find_best_position(size, orientation)
+                x, y = random.randint(0, self.grid_size - size), random.randint(0, self.grid_size - size)
 
                 if self.can_place_ship(x, y, size, orientation):
                     self.ships.append((x, y, size, orientation))
@@ -76,38 +95,91 @@ class AI:
         score = 0
         for i in range(size):
             if orientation == 'horizontal':
-                score += self.heatmap[y][x + i]
+                score += self._dm[y][x + i].get_score()
             else:
-                score += self.heatmap[y + i][x]
+                score += self._dm[y + i][x].get_score()
         return score
-
-    def update_dynamic_matrix(self) -> None:
-        for y in range(self.grid_size):
-            for x in range(self.grid_size):
-                if not self.shots_fired[y][x]:
-                    self.dynamic_matrix[y][x] = self.calculate_score(x, y)
-                else:
-                    self.dynamic_matrix[y][x] = -1
-
-    def calculate_score(self, x: int, y: int) -> int:
-        max_distance = min(x, self.grid_size - x - 1, y, self.grid_size - y - 1)
-        return max_distance
-
-    def find_best_shot(self) -> Tuple[int, int]:
-        self.update_dynamic_matrix()
-        max_score = max(max(row) for row in self.dynamic_matrix)
-        best_options = [(y, x) for y in range(self.grid_size) for x in range(self.grid_size) if self.dynamic_matrix[y][x] == max_score]
-        return random.choice(best_options)
 
     def mark_shot(self, x: int, y: int, hit: bool = False) -> None:
         self.shots_fired[y][x] = True
-        if hit:
-            self.heatmap[y][x] = 0  # Optionally, adjust heatmap based on hits
+        self._enemy_grid[y][x] = self.SHIP_HIT if hit else self.SHOT_FIRED
 
     def make_move(self) -> Tuple[int, int]:
-        best_shot = self.find_best_shot()
-        self.mark_shot(best_shot[1], best_shot[0])
-        return best_shot
+        if not self.hit_list:
+            return self._get_coordinates_find()
+        else:
+            return self._get_coordinates_sink()
+
+    def process_hit(self, x: int, y: int) -> None:
+        self.hit_list.append(Coordinates(x, y))
+
+    def _get_coordinates_find(self) -> Tuple[int, int]:
+        high_scores = []
+        for iy in range(self._dm_size + 1):
+            for ix in range(self._dm_size + 1):
+                if not self._enemy_grid[iy][ix]:
+                    x_val = self._dm[iy][ix - 1].x_val if ix > 0 else 0
+                    y_val = self._dm[iy - 1][ix].y_val if iy > 0 else 0
+                    self._dm[iy][ix].x_val = x_val + 1
+                    self._dm[iy][ix].y_val = y_val + 1
+
+        for iy in range(self._dm_size, -1, -1):
+            for ix in range(self._dm_size, -1, -1):
+                if not self._enemy_grid[iy][ix]:
+                    x_val = self._dm[iy][ix + 1].x_val_rev if ix < self._dm_size else 0
+                    y_val = self._dm[iy + 1][ix].y_val_rev if iy < self._dm_size else 0
+                    self._dm[iy][ix].add_xy(x_val + 1, y_val + 1)
+                    score = self._dm[iy][ix].get_score()
+                    high_scores.append((score, ix, iy))
+
+        high_scores.sort(reverse=True, key=lambda x: x[0])
+        shot_coordinates = high_scores[random.randint(0, min(5, len(high_scores) - 1))]
+        self.last_shot = Coordinates(shot_coordinates[1], shot_coordinates[2])
+        self._enemy_grid[self.last_shot.y][self.last_shot.x] = self.SHOT_FIRED
+        return self.last_shot.x, self.last_shot.y
+
+    def _get_coordinates_sink(self) -> Tuple[int, int]:
+        last_hit = self.hit_list[-1]
+        possible_coordinates = []
+
+        if len(self.hit_list) > 1:
+            if self.hit_list[-1].x == self.hit_list[-2].x:
+                self.ship_orientation = 'vertical'
+            else:
+                self.ship_orientation = 'horizontal'
+
+            if self.ship_orientation == 'horizontal':
+                directions = [(-1, 0), (1, 0)]
+            else:
+                directions = [(0, -1), (0, 1)]
+        else:
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        for dx, dy in directions:
+            x, y = last_hit.x + dx, last_hit.y + dy
+            if 0 <= x < self.grid_size and 0 <= y < self.grid_size and not self._enemy_grid[y][x]:
+                possible_coordinates.append((x, y))
+
+        if possible_coordinates:
+            if self.switch_direction:
+                self.hit_direction = tuple(-i for i in self.hit_direction)
+                self.switch_direction = False
+            else:
+                self.hit_direction = random.choice(directions)
+            choice = random.choice(possible_coordinates)
+            self.last_shot = Coordinates(choice[0], choice[1])
+            self._enemy_grid[self.last_shot.y][self.last_shot.x] = self.SHOT_FIRED
+            return self.last_shot.x, self.last_shot.y
+        else:
+            if self.hit_direction and not self.switch_direction:
+                self.switch_direction = True
+                self.hit_direction = tuple(-i for i in self.hit_direction)
+                return self._get_coordinates_sink()
+            else:
+                self.hit_direction = None
+                self.switch_direction = False
+                self.hit_list.clear()  # Clear the hit list if no valid moves are found
+                return self._get_coordinates_find()
 
     def get_ship_positions(self) -> List[List[Tuple[int, int]]]:
         ship_positions = []
@@ -128,25 +200,11 @@ class AI:
     def check_game_over(self):
         for row in self.grid:
             for cell in row:
-                if isinstance(cell, str) and cell == 'S':  # Check for unhit ship parts
+                if isinstance(cell, str) and cell == 'S':
                     return False
         return True
 
-
-
-def is_ship_sunk(board, ship):
-    logging.debug(f"Checking if ship {ship.name} is sunk.")
-    for position in ship.get_occupied_positions():
-        x, y = position
-        logging.debug(f"Checking position {position} with board state: {board.grid[y][x]}")
-        if board.grid[y][x] != 'X':
-            logging.debug(f"Ship {ship.name} is not sunk. Position {position} is not hit.")
-            return False
-    logging.debug(f"Ship {ship.name} is sunk.")
-    return True
-
- 
-def process_ai_attack(screen,ai_player: AI, player_board) -> None:
+def process_ai_attack(screen, ai_player: AI, player_board) -> None:
     ai_move = ai_player.make_move()
     x, y = ai_move
     cell = player_board.grid[y][x]
@@ -154,20 +212,10 @@ def process_ai_attack(screen,ai_player: AI, player_board) -> None:
         print(f"AI hit at {chr(y + 65)}{x + 1}!")
         player_board.grid[y][x] = 'X'
         ai_player.mark_shot(x, y, hit=True)
+        ai_player.process_hit(x, y)
         show_attack_result_popup(screen, "AI hit a boat!", duration=2)
-
-        for ship in player_board.ships:
-            if isinstance(ship, Ship) and is_ship_sunk(player_board, ship):
-                logging.debug(f"AI sunk the {ship.name}!")
-                show_ship_sunk_popup(screen, f"AI sunk the {ship.name}!", ship.image_path, ship.get_occupied_positions(), duration=2)
-                player_board.ships.remove(ship)  # Remove the ship from the list once it is sunk
-                break  # Exit the loop once a ship is sunk
     else:
         print(f"AI miss at {chr(y + 65)}{x + 1}.")
         player_board.grid[y][x] = 'O'
         ai_player.mark_shot(x, y, hit=False)
         show_attack_result_popup(screen, "AI hit water!", duration=2)
-
-# Create an instance of AI to initialize the board and place ships
-ai_player = AI()
-ai_player.place_ships([5, 4, 3, 2])

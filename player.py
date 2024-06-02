@@ -5,6 +5,7 @@ from settings import *
 import logging
 from ship import Ship
 from fleet_config import FLEET
+
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
