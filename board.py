@@ -11,6 +11,7 @@ class Board:
         self.show_ships = show_ships
         self.row_labels = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
         self.column_labels = [str(i + 1) for i in range(size)]
+        self.sunk_ships = []  # Add this line
 
     def add_ship(self, ship):
         self.ships.append(ship)
@@ -79,17 +80,16 @@ class Board:
 
             screen.blit(label_surface, (offset[0] + i * cell_size + (cell_size // 2 - label_surface.get_width() // 2), offset[1] - label_height - 10))
 
-        for y in range(self.size):
-            for x in range(self.size):
-                rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
-                pygame.draw.rect(screen, BLACK, rect, 1)
-
-                if self.grid[y][x] == 'X':
-                    pygame.draw.rect(screen, RED, rect)
-                elif self.grid[y][x] == 'O':
-                    pygame.draw.rect(screen, BLUE, rect)
-
-    
+        for y, row in enumerate(self.grid):
+            for x, cell in enumerate(row):
+                tile_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
+                if cell == 'O':
+                    pygame.draw.rect(screen, BLUE, tile_rect)
+                elif cell == 'X':
+                    pygame.draw.rect(screen, RED, tile_rect)
+                elif cell == 'SUNK':
+                    pygame.draw.rect(screen, RED, tile_rect)
+                pygame.draw.rect(screen, BLACK, tile_rect, 1)
 
         if self.show_ships:
             for ship in self.ships:
