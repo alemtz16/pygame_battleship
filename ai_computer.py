@@ -1,7 +1,9 @@
 import random
+import logging
 from typing import List, Tuple
-from gui_helpers import  show_attack_result_popup
-
+from gui_helpers import  show_attack_result_popup, show_ship_sunk_popup
+from ship import Ship
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 class AI:
     def __init__(self, grid_size: int = 10):
         self.grid_size = grid_size
@@ -29,6 +31,8 @@ class AI:
         for y in range(self.grid_size):
             for x in range(self.grid_size):
                 self.heatmap[y][x] = pattern[y][x]
+
+ 
 
     def place_ships(self, ship_sizes: List[int]) -> None:
         for size in ship_sizes:
@@ -128,6 +132,20 @@ class AI:
                     return False
         return True
 
+
+
+def is_ship_sunk(board, ship):
+    logging.debug(f"Checking if ship {ship.name} is sunk.")
+    for position in ship.get_occupied_positions():
+        x, y = position
+        logging.debug(f"Checking position {position} with board state: {board.grid[y][x]}")
+        if board.grid[y][x] != 'X':
+            logging.debug(f"Ship {ship.name} is not sunk. Position {position} is not hit.")
+            return False
+    logging.debug(f"Ship {ship.name} is sunk.")
+    return True
+
+ 
 def process_ai_attack(screen,ai_player: AI, player_board) -> None:
     ai_move = ai_player.make_move()
     x, y = ai_move
@@ -137,6 +155,13 @@ def process_ai_attack(screen,ai_player: AI, player_board) -> None:
         player_board.grid[y][x] = 'X'
         ai_player.mark_shot(x, y, hit=True)
         show_attack_result_popup(screen, "AI hit a boat!", duration=2)
+
+        for ship in player_board.ships:
+            if isinstance(ship, Ship) and is_ship_sunk(player_board, ship):
+                logging.debug(f"AI sunk the {ship.name}!")
+                show_ship_sunk_popup(screen, f"AI sunk the {ship.name}!", ship.image_path, ship.get_occupied_positions(), duration=2)
+                player_board.ships.remove(ship)  # Remove the ship from the list once it is sunk
+                break  # Exit the loop once a ship is sunk
     else:
         print(f"AI miss at {chr(y + 65)}{x + 1}.")
         player_board.grid[y][x] = 'O'

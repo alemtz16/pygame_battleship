@@ -22,6 +22,28 @@ def draw_button(screen, text, rect, color, hover_color, font):
 
     return is_hovering
 
+def show_ship_sunk_popup(screen, message, image_path, positions, duration=2):
+    font = pygame.font.Font(None, 36)
+    popup_rect = pygame.Rect(300, 150, 400, 200)
+    pygame.draw.rect(screen, GRAY, popup_rect)
+    pygame.draw.rect(screen, BLACK, popup_rect, 2)
+
+    text_surface = font.render(message, True, BLACK)
+    text_rect = text_surface.get_rect(center=(popup_rect.x + popup_rect.width // 2, popup_rect.y + 50))
+    screen.blit(text_surface, text_rect)
+
+    pygame.display.flip()
+    pygame.time.wait(duration * 1000)
+
+ 
+    ship_image = pygame.image.load(image_path)
+    ship_image = pygame.transform.scale(ship_image, (len(positions) * CELL_SIZE2, CELL_SIZE2))
+    for position in positions:
+        x, y = position
+        rect = pygame.Rect(520 + x * CELL_SIZE2, 100 + y * CELL_SIZE2, CELL_SIZE2, CELL_SIZE2)
+        screen.blit(ship_image, rect.topleft)
+    pygame.display.flip()
+
 def show_turn_selection_popup(screen):
     font = pygame.font.Font(None, 36)
     popup_rect = pygame.Rect(200, 150, 400, 300)

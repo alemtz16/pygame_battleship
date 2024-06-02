@@ -89,6 +89,8 @@ class Board:
                 elif self.grid[y][x] == 'O':
                     pygame.draw.rect(screen, BLUE, rect)
 
+    
+
         if self.show_ships:
             for ship in self.ships:
                 ship.draw(screen)
