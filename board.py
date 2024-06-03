@@ -94,6 +94,41 @@ class Board:
         if self.show_ships:
             for ship in self.ships:
                 ship.draw(screen)
+        
+       # for ship_positions, ship_image_path, orientation in self.sunk_ships:
+       
+
+            # Calcula la posición inicial del barco (ajustado)
+        #    x_start, y_start = ship_positions[0]
+             
+
+        #    ship_image = pygame.image.load(ship_image_path)
+            
+       #     if orientation == 'horizontal':
+        #        ship_image = pygame.transform.scale(ship_image, (cell_size * len(ship_positions), cell_size))
+       #     else:
+                # Para barcos verticales, escalar primero y luego rotar 90 grados hacia la derecha (no hacia la izquierda)
+       #         ship_image = pygame.transform.scale(ship_image, (cell_size, cell_size * len(ship_positions)))
+        #        ship_image = pygame.transform.rotate(ship_image, 90)
+       #     
+            # Dibuja el barco completo una vez
+        #    screen.blit(ship_image, (offset[0] + x_start * cell_size, offset[1] + y_start * cell_size))
+    def check_sunk_ship(self, x: int, y: int) -> Ship:
+        print(f"Checking if ship at ({x}, {y}) is sunk...")
+        for ship in self.ships:
+            occupied_positions = ship.get_occupied_positions()
+            print(f"Checking ship: {ship.name} with positions: {occupied_positions}")
+
+            if (x + 1, y + 1) in occupied_positions:
+                print(f"Hit position ({x + 1}, {y + 1}) is part of ship: {ship.name}")
+                # Adjust the positions to match grid coordinates
+                grid_positions = [(pos[0] - 1, pos[1] - 1) for pos in occupied_positions]
+                if all(self.grid[pos[1]][pos[0]] == 'X' for pos in grid_positions):
+                    self.sunk_ships.append(ship)
+                    print(f"Ship {ship.name} is sunk!")
+                    return ship
+        print("No ship is sunk at this position.")
+        return None
 
     def check_game_over(self):
         for row in self.grid:

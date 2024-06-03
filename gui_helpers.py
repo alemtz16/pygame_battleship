@@ -22,27 +22,43 @@ def draw_button(screen, text, rect, color, hover_color, font):
 
     return is_hovering
 
-def show_ship_sunk_popup(screen, message, image_path, positions, duration=2):
-    font = pygame.font.Font(None, 36)
-    popup_rect = pygame.Rect(300, 150, 400, 200)
+ 
+def show_end_game_popup(screen, message, button_text):
+    font = pygame.font.Font(None, 72)
+    button_font = pygame.font.Font(None, 36)
+    
+    screen_width, screen_height = screen.get_size()
+    popup_rect = pygame.Rect(0, 0, screen_width, screen_height)
     pygame.draw.rect(screen, GRAY, popup_rect)
     pygame.draw.rect(screen, BLACK, popup_rect, 2)
 
     text_surface = font.render(message, True, BLACK)
-    text_rect = text_surface.get_rect(center=(popup_rect.x + popup_rect.width // 2, popup_rect.y + 50))
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
     screen.blit(text_surface, text_rect)
 
-    pygame.display.flip()
-    pygame.time.wait(duration * 1000)
+    button_rect = pygame.Rect((screen_width - 200) // 2, (screen_height + 50) // 2, 200, 50)
+    pygame.draw.rect(screen, WHITE, button_rect)
+    pygame.draw.rect(screen, BLACK, button_rect, 2)
 
- 
-    ship_image = pygame.image.load(image_path)
-    ship_image = pygame.transform.scale(ship_image, (len(positions) * CELL_SIZE2, CELL_SIZE2))
-    for position in positions:
-        x, y = position
-        rect = pygame.Rect(520 + x * CELL_SIZE2, 100 + y * CELL_SIZE2, CELL_SIZE2, CELL_SIZE2)
-        screen.blit(ship_image, rect.topleft)
+    button_text_surface = button_font.render(button_text, True, BLACK)
+    button_text_rect = button_text_surface.get_rect(center=button_rect.center)
+    screen.blit(button_text_surface, button_text_rect)
+
     pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if button_rect.collidepoint(event.pos):
+                    waiting = False
+
+    pygame.quit()
+    exit()
+
 
 def show_turn_selection_popup(screen):
     font = pygame.font.Font(None, 36)
@@ -242,33 +258,4 @@ def show_message(screen, text, font, color, position):
     text_rect = text_surface.get_rect(center=position)
     screen.blit(text_surface, text_rect)
 
-def handle_drag_and_drop(ship, board_size, event, dragging_ship):
-    """
-    Handles the drag and drop event for a ship based on the passed event.
-    """
-    mouse_pos = pygame.mouse.get_pos()
-
-    if event.type == pygame.MOUSEBUTTONDOWN and not dragging_ship:
-        ship_rect = pygame.Rect(
-            ship.start_position[0] * CELL_SIZE2,
-            ship.start_position[1] * CELL_SIZE2,
-            ship.size * CELL_SIZE2 if ship.orientation == 'horizontal' else CELL_SIZE2,
-            ship.size * CELL_SIZE2 if ship.orientation == 'vertical' else CELL_SIZE2
-        )
-        if ship_rect.collidepoint(mouse_pos):
-            dragging_ship = ship
-
-    elif event.type == pygame.MOUSEMOTION and dragging_ship:
-        dragging_ship.start_position = (
-            mouse_pos[0] // CELL_SIZE,
-            mouse_pos[1] // CELL_SIZE
-        )
-
-    elif event.type == pygame.MOUSEBUTTONUP and dragging_ship:
-        dragging_ship.start_position = (
-            max(0, min(board_size - (dragging_ship.size if dragging_ship.orientation == 'horizontal' else 1), dragging_ship.start_position[0])),
-            max(0, min(board_size - (dragging_ship.size if dragging_ship.orientation == 'vertical' else 1), dragging_ship.start_position[1]))
-        )
-        dragging_ship = None
-
-    return dragging_ship
+ 

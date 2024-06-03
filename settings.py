@@ -1,5 +1,3 @@
-# settings.py
-
  
 CELL_SIZE = 30
 CELL_SIZE2 = 40
@@ -8,8 +6,8 @@ WINDOW_HEIGHT = 600
 WINDOW_SIZE = (WINDOW_WIDTH, WINDOW_HEIGHT)
 
  
-WHITE = (255, 255, 255)  
-BLACK = (0, 0, 0)   
+WHITE = (0,0,0)
+BLACK = (0,255,0)
 GRAY = (128, 128, 128)   
 RED = (255, 0, 0)  
 GREEN = (0, 255, 0)  

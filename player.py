@@ -47,7 +47,7 @@ def process_player_attack(screen, attack_position, ai_player, computer_board):
         logging.debug(f"Hit at {chr(y + 65)}{x + 1}!")
         ai_player.grid[y][x] = 'X'
         computer_board.grid[y][x] = 'X'
-        show_attack_result_popup(screen, "Player hit a boat!", duration=2)
+        show_attack_result_popup(screen, f"Player hit a boat at {chr(y + 65)}{x + 1}!", duration=2)
         tile_rect = pygame.Rect(520 + x * CELL_SIZE2, 100 + y * CELL_SIZE2, CELL_SIZE2, CELL_SIZE2)
         pygame.draw.rect(screen, BLACK, tile_rect)
         pygame.draw.rect(screen, BLACK, tile_rect, 1)
@@ -99,7 +99,7 @@ def process_player_attack(screen, attack_position, ai_player, computer_board):
         logging.debug(f"Miss at {chr(y + 65)}{x + 1}.")
         ai_player.grid[y][x] = 'O'
         computer_board.grid[y][x] = 'O'
-        show_attack_result_popup(screen, "Player hit water!", duration=2)
+        show_attack_result_popup(screen, f"Player hit water at {chr(y + 65)}{x + 1}!", duration=2)
         tile_rect = pygame.Rect(520 + x * CELL_SIZE2, 100 + y * CELL_SIZE2, CELL_SIZE2, CELL_SIZE2)
         pygame.draw.rect(screen, BLUE, tile_rect)
         pygame.draw.rect(screen, BLACK, tile_rect, 1)
