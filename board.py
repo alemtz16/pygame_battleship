@@ -102,9 +102,19 @@ class Board:
                     return False
         return True
 
-    def check_sunk_ship(self, x: int, y: int) -> int:
+    def check_sunk_ship(self, x: int, y: int) -> Ship:
+        print(f"Checking if ship at ({x}, {y}) is sunk...")
         for ship in self.ships:
-            if (x, y) in ship.get_occupied_positions():
-                if all(self.grid[pos[1]][pos[0]] == 'X' for pos in ship.get_occupied_positions()):
-                    return ship.size
-        return 0
+            occupied_positions = ship.get_occupied_positions()
+            print(f"Checking ship: {ship.name} with positions: {occupied_positions}")
+
+            if (x + 1, y + 1) in occupied_positions:
+                print(f"Hit position ({x + 1}, {y + 1}) is part of ship: {ship.name}")
+                # Adjust the positions to match grid coordinates
+                grid_positions = [(pos[0] - 1, pos[1] - 1) for pos in occupied_positions]
+                if all(self.grid[pos[1]][pos[0]] == 'X' for pos in grid_positions):
+                    self.sunk_ships.append(ship)
+                    print(f"Ship {ship.name} is sunk!")
+                    return ship
+        print("No ship is sunk at this position.")
+        return None

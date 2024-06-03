@@ -1,6 +1,7 @@
 import random
 from typing import List, Tuple
 from gui_helpers import show_attack_result_popup
+from board import *
 
 class Coordinates:
     def __init__(self, x=0, y=0):
@@ -165,16 +166,24 @@ class AI:
                 if isinstance(cell, str) and cell == 'S':
                     return False
         return True
+    
+    def process_sunk_ship(self, ship_name: str) -> None:
+        print(f"AI sunk the {ship_name}!")
 
 def process_ai_attack(screen, ai_player: AI, player_board) -> None:
     ai_move = ai_player.make_move()
     x, y = ai_move
     cell = player_board.grid[y][x]
+    print(f"AI move: ({x}, {y}) - Cell state before attack: {cell}")
     if cell == 'S':
         print(f"AI hit at {chr(y + 65)}{x + 1}!")
         player_board.grid[y][x] = 'X'
         ai_player.mark_shot(x, y, hit=True)
         ai_player.process_hit(x, y)
+        ship_sunk = player_board.check_sunk_ship(x, y)
+        if ship_sunk:
+            print(f"AI has detected that it sunk the ship: {ship_sunk.name}")
+            ai_player.process_sunk_ship(ship_sunk.name)
         show_attack_result_popup(screen, "AI hit a boat!", duration=2)
     else:
         print(f"AI miss at {chr(y + 65)}{x + 1}.")
