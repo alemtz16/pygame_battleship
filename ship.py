@@ -74,6 +74,12 @@ class Ship:
         elif event.type == pygame.MOUSEBUTTONUP:
             if self.dragging:
                 self.dragging = False
+                # Snap to the closest grid position considering the ship's size and orientation
+                grid_x = round(self.rect.topleft[0] / CELL_SIZE2)
+                grid_y = round(self.rect.topleft[1] / CELL_SIZE2)
+                
+                # Adjust for half a square to the right and down
+                self.rect.topleft = ((grid_x + 0.25) * CELL_SIZE2, (grid_y + 0.5) * CELL_SIZE2)
                 self.start_position = self.rect.topleft
 
         elif event.type == pygame.MOUSEMOTION:
