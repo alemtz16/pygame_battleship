@@ -1,0 +1,44 @@
+Player Moves:
+Player attacked I9
+Player attacked G7
+Player attacked E9
+Player attacked E5
+Player attacked B3
+Player attacked D1
+Player attacked H1
+Player attacked F3
+Player attacked H4
+Player attacked D3
+Player attacked J3
+Player attacked J6
+Player attacked C6
+Player attacked C7
+Player attacked C5
+Player attacked B6
+Player attacked D6
+Player attacked E6
+Player attacked F6
+Player attacked A1
+Player attacked F2
+Player attacked E2
+Player attacked D2
+Player attacked C2
+Player attacked G2
+Player attacked H2
+Player attacked I4
+Player attacked J1
+Player attacked G5
+Player attacked H6
+Player attacked E4
+Player attacked F4
+Player attacked G4
+Player attacked D4
+Player attacked C4
+Player attacked A5
+Player attacked D8
+Player attacked A10
+Player attacked G9
+Player attacked H8
+Player attacked H10
+
+AI Moves:

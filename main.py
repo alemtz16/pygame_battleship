@@ -4,7 +4,7 @@ from settings import *
 from menu import GameMenu
 from board import Board
 from ship import Ship
-from gui_helpers import draw_button, show_turn_selection_popup, manual_turn_selection, random_turn_selection, show_confirmation_popup
+from gui_helpers import draw_button, show_turn_selection_popup, manual_turn_selection, random_turn_selection, show_end_game_popup
 from fleet_config import FLEET
 import random
 import time
@@ -40,14 +40,32 @@ for ship_info in FLEET.values():
     )
     player_board.add_ship(new_ship)
     ships.append(new_ship)
+def reset_ships():
+    global ships, player_board
+    player_board = Board(10)
+    ships = []
+    for ship_info in FLEET.values():
+        new_ship = Ship(
+            name=ship_info['name'],
+            size=ship_info['size'],
+            orientation=ship_info['orientation'],
+            start_position=(ship_info['position'][0], ship_info['position'][1]),
+            image_path=ship_info['image_path'],
+            start_cell_position=(ship_info['position'][0], ship_info['position'][1])
+        )
+        player_board.add_ship(new_ship)
+        ships.append(new_ship)
 
 game_state = 'MENU'
 next_button = pygame.Rect(700, 550, 100, 50)
+reset_button = pygame.Rect(580, 550, 100, 50)
 
 clock = pygame.time.Clock()
 
 ai_player = AI()
 ai_player.place_ships([5, 4, 3, 2])
+player_moves = []
+ai_moves = []
 
 # Variables for turn popup
 turn_popup_start_time = None
@@ -181,6 +199,8 @@ while running:
                 screen.blit(text_surface, (50, 520))
                 alert_start_time = time.time()
 
+        if draw_button(screen, "Reset", reset_button, BLUE, RED, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
+            reset_ships()
         if alert_start_time is not None:
             elapsed_time = time.time() - alert_start_time
             if elapsed_time < alert_duration:
@@ -213,17 +233,20 @@ while running:
         if current_turn == 'player' and not show_turn_popup:
             turn_over, cursor_x, cursor_y = player_turn(events, screen, ai_player, cursor_x, cursor_y,computer_board)
             if turn_over:
+                player_moves.append(f"Player attacked {chr(cursor_y + 65)}{cursor_x + 1}")
                 if ai_player.check_game_over():
-                    print("Player wins!")
+                    show_end_game_popup(screen, "Congratulations, you win!", "End Game")
                     running = False
                 else:
                     current_turn = 'computer'
                     show_turn_popup = True
                     turn_popup_start_time = time.time()
         elif current_turn == 'computer' and not show_turn_popup:
+            #ai_move = ai_player.make_move()
+            #ai_moves.append(f"AI attacked {chr(ai_move[1] + 65)}{ai_move[0] + 1}")
             process_ai_attack(screen,ai_player, player_board)
             if player_board.check_game_over():
-                print("AI wins!")
+                show_end_game_popup(screen, "Better luck next time, AI wins!", "End Game")
                 running = False
             else:
                 current_turn = 'player'
@@ -231,5 +254,12 @@ while running:
                 turn_popup_start_time = time.time()
 
     pygame.display.flip()
+    with open("control_file.txt", "w") as file:
+        file.write("Player Moves:\n")
+        for move in player_moves:
+            file.write(move + "\n")
+        file.write("\nAI Moves:\n")
+        for move in ai_moves:
+            file.write(move + "\n")
 
 pygame.quit()

@@ -141,12 +141,8 @@ class AI:
                 self.mark_shot(nx, ny)
                 return nx, ny
 
-        if self.ship_orientation and not self.switch_direction:
-            self.switch_direction = True
-            self.hit_list.reverse()
-        else:
-            self.switch_direction = False
-            self.hit_list.pop()
+        # If all possible directions are exhausted, clear the hit list and try a new search
+        self.hit_list.pop()
 
         if not self.hit_list:
             return self._get_coordinates_find()

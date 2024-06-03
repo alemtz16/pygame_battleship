@@ -272,3 +272,39 @@ def handle_drag_and_drop(ship, board_size, event, dragging_ship):
         dragging_ship = None
 
     return dragging_ship
+
+def show_end_game_popup(screen, message, button_text):
+    font = pygame.font.Font(None, 72)
+    button_font = pygame.font.Font(None, 36)
+    
+    screen_width, screen_height = screen.get_size()
+    popup_rect = pygame.Rect(0, 0, screen_width, screen_height)
+    pygame.draw.rect(screen, GRAY, popup_rect)
+    pygame.draw.rect(screen, BLACK, popup_rect, 2)
+
+    text_surface = font.render(message, True, BLACK)
+    text_rect = text_surface.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
+    screen.blit(text_surface, text_rect)
+
+    button_rect = pygame.Rect((screen_width - 200) // 2, (screen_height + 50) // 2, 200, 50)
+    pygame.draw.rect(screen, WHITE, button_rect)
+    pygame.draw.rect(screen, BLACK, button_rect, 2)
+
+    button_text_surface = button_font.render(button_text, True, BLACK)
+    button_text_rect = button_text_surface.get_rect(center=button_rect.center)
+    screen.blit(button_text_surface, button_text_rect)
+
+    pygame.display.flip()
+
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if button_rect.collidepoint(event.pos):
+                    waiting = False
+
+    pygame.quit()
+    exit()
