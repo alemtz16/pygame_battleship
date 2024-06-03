@@ -50,6 +50,7 @@ class AI:
         self.ship_orientation = None
         self.hit_direction = None
         self.switch_direction = False
+        self.remaining_ships = []  # Keep track of remaining ship sizes
 
     SHOT_FIRED = 1
     SHIP_HIT = 2
@@ -69,6 +70,7 @@ class AI:
                         else:
                             self.grid[y + i][x] = 'S'
                     placed = True
+        self.remaining_ships = ship_sizes.copy()
 
     def can_place_ship(self, x: int, y: int, size: int, orientation: str) -> bool:
         for i in range(size):
@@ -80,9 +82,18 @@ class AI:
                     return False
         return True
 
-    def mark_shot(self, x: int, y: int, hit: bool = False) -> None:
+    def mark_shot(self, x: int, y: int, hit: bool = False, sunk: bool = False) -> None:
         self.shots_fired[y][x] = True
         self._enemy_grid[y][x] = self.SHIP_HIT if hit else self.SHOT_FIRED
+        if sunk:
+            self.mark_adjacent_cells(x, y)
+
+    def mark_adjacent_cells(self, x: int, y: int) -> None:
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.grid_size and 0 <= ny < self.grid_size:
+                    self.shots_fired[ny][nx] = True
 
     def make_move(self) -> Tuple[int, int]:
         if self.hit_list:
@@ -104,7 +115,12 @@ class AI:
                 self.ship_orientation = 'horizontal'
 
     def _get_coordinates_find(self) -> Tuple[int, int]:
-        pattern = [(x, y) for x in range(self.grid_size) for y in range(self.grid_size) if (x + y) % 2 == 0]
+        if len(self.remaining_ships) > 0:
+            largest_ship = max(self.remaining_ships)
+            pattern = [(x, y) for x in range(self.grid_size) for y in range(self.grid_size) if (x + y) % largest_ship == 0]
+        else:
+            pattern = [(x, y) for x in range(self.grid_size) for y in range(self.grid_size)]
+        
         random.shuffle(pattern)
         for (x, y) in pattern:
             if not self.shots_fired[y][x]:
@@ -167,8 +183,9 @@ class AI:
                     return False
         return True
     
-    def process_sunk_ship(self, ship_name: str) -> None:
+    def process_sunk_ship(self, ship_name: str, ship_size: int) -> None:
         print(f"AI sunk the {ship_name}!")
+        self.remaining_ships.remove(ship_size)
 
 def process_ai_attack(screen, ai_player: AI, player_board) -> None:
     ai_move = ai_player.make_move()
@@ -183,7 +200,10 @@ def process_ai_attack(screen, ai_player: AI, player_board) -> None:
         ship_sunk = player_board.check_sunk_ship(x, y)
         if ship_sunk:
             print(f"AI has detected that it sunk the ship: {ship_sunk.name}")
-            ai_player.process_sunk_ship(ship_sunk.name)
+            ai_player.mark_shot(x, y, hit=True, sunk=True)
+            ai_player.process_sunk_ship(ship_sunk.name, ship_sunk.size)
+        else:
+            ai_player.mark_shot(x, y, hit=True)
         show_attack_result_popup(screen, "AI hit a boat!", duration=2)
     else:
         print(f"AI miss at {chr(y + 65)}{x + 1}.")
