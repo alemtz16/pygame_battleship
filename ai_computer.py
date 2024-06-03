@@ -79,107 +79,69 @@ class AI:
                     return False
         return True
 
-    def find_best_position(self, size: int, orientation: str) -> Tuple[int, int]:
-        best_score = -1
-        best_position = (0, 0)
-        for y in range(self.grid_size):
-            for x in range(self.grid_size):
-                if self.can_place_ship(x, y, size, orientation):
-                    score = self.calculate_heatmap_score(x, y, size, orientation)
-                    if score > best_score:
-                        best_score = score
-                        best_position = (x, y)
-        return best_position
-
-    def calculate_heatmap_score(self, x: int, y: int, size: int, orientation: str) -> int:
-        score = 0
-        for i in range(size):
-            if orientation == 'horizontal':
-                score += self._dm[y][x + i].get_score()
-            else:
-                score += self._dm[y + i][x].get_score()
-        return score
-
     def mark_shot(self, x: int, y: int, hit: bool = False) -> None:
         self.shots_fired[y][x] = True
         self._enemy_grid[y][x] = self.SHIP_HIT if hit else self.SHOT_FIRED
 
     def make_move(self) -> Tuple[int, int]:
-        if not self.hit_list:
-            return self._get_coordinates_find()
-        else:
+        if self.hit_list:
             return self._get_coordinates_sink()
+        else:
+            return self._get_coordinates_find()
 
     def process_hit(self, x: int, y: int) -> None:
         self.hit_list.append(Coordinates(x, y))
+        self.determine_orientation()
+        self.hit_direction = None
+        self.switch_direction = False
 
-    def _get_coordinates_find(self) -> Tuple[int, int]:
-        high_scores = []
-        for iy in range(self._dm_size + 1):
-            for ix in range(self._dm_size + 1):
-                if not self._enemy_grid[iy][ix]:
-                    x_val = self._dm[iy][ix - 1].x_val if ix > 0 else 0
-                    y_val = self._dm[iy - 1][ix].y_val if iy > 0 else 0
-                    self._dm[iy][ix].x_val = x_val + 1
-                    self._dm[iy][ix].y_val = y_val + 1
-
-        for iy in range(self._dm_size, -1, -1):
-            for ix in range(self._dm_size, -1, -1):
-                if not self._enemy_grid[iy][ix]:
-                    x_val = self._dm[iy][ix + 1].x_val_rev if ix < self._dm_size else 0
-                    y_val = self._dm[iy + 1][ix].y_val_rev if iy < self._dm_size else 0
-                    self._dm[iy][ix].add_xy(x_val + 1, y_val + 1)
-                    score = self._dm[iy][ix].get_score()
-                    high_scores.append((score, ix, iy))
-
-        high_scores.sort(reverse=True, key=lambda x: x[0])
-        shot_coordinates = high_scores[random.randint(0, min(5, len(high_scores) - 1))]
-        self.last_shot = Coordinates(shot_coordinates[1], shot_coordinates[2])
-        self._enemy_grid[self.last_shot.y][self.last_shot.x] = self.SHOT_FIRED
-        return self.last_shot.x, self.last_shot.y
-
-    def _get_coordinates_sink(self) -> Tuple[int, int]:
-        last_hit = self.hit_list[-1]
-        possible_coordinates = []
-
-        if len(self.hit_list) > 1:
+    def determine_orientation(self) -> None:
+        if len(self.hit_list) >= 2:
             if self.hit_list[-1].x == self.hit_list[-2].x:
                 self.ship_orientation = 'vertical'
-            else:
+            elif self.hit_list[-1].y == self.hit_list[-2].y:
                 self.ship_orientation = 'horizontal'
 
+    def _get_coordinates_find(self) -> Tuple[int, int]:
+        pattern = [(x, y) for x in range(self.grid_size) for y in range(self.grid_size) if (x + y) % 2 == 0]
+        random.shuffle(pattern)
+        for (x, y) in pattern:
+            if not self.shots_fired[y][x]:
+                self.last_shot = Coordinates(x, y)
+                self.mark_shot(x, y)
+                return x, y
+        return 0, 0
+
+    def _get_coordinates_sink(self) -> Tuple[int, int]:
+        if not self.hit_list:
+            return self._get_coordinates_find()
+
+        last_hit = self.hit_list[-1]
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        if self.ship_orientation:
             if self.ship_orientation == 'horizontal':
-                directions = [(-1, 0), (1, 0)]
+                directions = [(1, 0), (-1, 0)]
             else:
-                directions = [(0, -1), (0, 1)]
-        else:
-            directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+                directions = [(0, 1), (0, -1)]
 
         for dx, dy in directions:
-            x, y = last_hit.x + dx, last_hit.y + dy
-            if 0 <= x < self.grid_size and 0 <= y < self.grid_size and not self._enemy_grid[y][x]:
-                possible_coordinates.append((x, y))
+            nx, ny = last_hit.x + dx, last_hit.y + dy
+            if 0 <= nx < self.grid_size and 0 <= ny < self.grid_size and not self.shots_fired[ny][nx]:
+                self.last_shot = Coordinates(nx, ny)
+                self.mark_shot(nx, ny)
+                return nx, ny
 
-        if possible_coordinates:
+        if self.ship_orientation:
+            self.switch_direction = not self.switch_direction
             if self.switch_direction:
-                self.hit_direction = tuple(-i for i in self.hit_direction)
-                self.switch_direction = False
-            else:
-                self.hit_direction = random.choice(directions)
-            choice = random.choice(possible_coordinates)
-            self.last_shot = Coordinates(choice[0], choice[1])
-            self._enemy_grid[self.last_shot.y][self.last_shot.x] = self.SHOT_FIRED
-            return self.last_shot.x, self.last_shot.y
+                self.hit_list.reverse()
+
+        if not self.hit_list:
+            return self._get_coordinates_find()
         else:
-            if self.hit_direction and not self.switch_direction:
-                self.switch_direction = True
-                self.hit_direction = tuple(-i for i in self.hit_direction)
-                return self._get_coordinates_sink()
-            else:
-                self.hit_direction = None
-                self.switch_direction = False
-                self.hit_list.clear()  # Clear the hit list if no valid moves are found
-                return self._get_coordinates_find()
+            self.hit_list.pop()
+            return self._get_coordinates_sink()
 
     def get_ship_positions(self) -> List[List[Tuple[int, int]]]:
         ship_positions = []
