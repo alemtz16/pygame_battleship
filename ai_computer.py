@@ -188,21 +188,25 @@ def process_ai_attack(screen, ai_player: AI, player_board) -> None:
     x, y = ai_move
     cell = player_board.grid[y][x]
     print(f"AI move: ({x}, {y}) - Cell state before attack: {cell}")
-    if cell == 'S':
-        print(f"AI hit at {chr(y + 65)}{x + 1}!")
-        player_board.grid[y][x] = 'X'
-        ai_player.mark_shot(x, y, hit=True)
-        ai_player.process_hit(x, y)
-        ship_sunk = player_board.check_sunk_ship(x, y)
-        if ship_sunk:
-            print(f"AI has detected that it sunk the ship: {ship_sunk.name}")
-            ai_player.mark_shot(x, y, hit=True, sunk=True)
-            ai_player.process_sunk_ship(ship_sunk.name, ship_sunk.size)
-        else:
+    with open("control_file.txt", "a") as file:
+        if cell == 'S':
+            print(f"AI hit at {chr(y + 65)}{x + 1}!")
+            player_board.grid[y][x] = 'X'
             ai_player.mark_shot(x, y, hit=True)
-        show_attack_result_popup(screen, "AI hit a boat!", duration=2)
-    else:
-        print(f"AI miss at {chr(y + 65)}{x + 1}.")
-        player_board.grid[y][x] = 'O'
-        ai_player.mark_shot(x, y, hit=False)
-        show_attack_result_popup(screen, "AI hit water!", duration=2)
+            ai_player.process_hit(x, y)
+            file.write(f"AI hit at {chr(y + 65)}{x + 1}\n")
+            ship_sunk = player_board.check_sunk_ship(x, y)
+            if ship_sunk:
+                print(f"AI has detected that it sunk the ship: {ship_sunk.name}")
+                ai_player.mark_shot(x, y, hit=True, sunk=True)
+                ai_player.process_sunk_ship(ship_sunk.name, ship_sunk.size)
+                file.write(f"AI sunk the {ship_sunk.name} at {chr(y + 65)}{x + 1}\n")
+            else:
+                ai_player.mark_shot(x, y, hit=True)
+            show_attack_result_popup(screen, "AI hit a boat!", duration=2)
+        else:
+            print(f"AI miss at {chr(y + 65)}{x + 1}.")
+            player_board.grid[y][x] = 'O'
+            ai_player.mark_shot(x, y, hit=False)
+            file.write(f"AI miss at {chr(y + 65)}{x + 1}\n")
+            show_attack_result_popup(screen, "AI hit water!", duration=2)

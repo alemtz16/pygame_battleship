@@ -11,6 +11,9 @@ import time
 from player import player_turn
 from ai_computer import AI, process_ai_attack
 
+# Erase the contents of control_file.txt
+open("control_file.txt", "w").close()
+
 # Add a variable to track the alert display time
 alert_start_time = None
 alert_duration = 30
@@ -74,6 +77,9 @@ show_turn_popup = False
 current_turn = 'player'  # This variable keeps track of whose turn it is
 
 running = True
+with open("control_file.txt", "w") as file:
+    file.write("CONTROL FILE:\n\n")
+
 while running:
     clock.tick(60)
     events = pygame.event.get()
@@ -254,12 +260,5 @@ while running:
                 turn_popup_start_time = time.time()
 
     pygame.display.flip()
-    with open("control_file.txt", "w") as file:
-        file.write("Player Moves:\n")
-        for move in player_moves:
-            file.write(move + "\n")
-        file.write("\nAI Moves:\n")
-        for move in ai_moves:
-            file.write(move + "\n")
 
 pygame.quit()
