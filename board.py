@@ -2,7 +2,7 @@ import pygame
 import logging
 from settings import CELL_SIZE, CELL_SIZE2, BLACK, BLUE, RED
 from ship import *
-
+from ai_computer import *
 class Board:
     def __init__(self, size, show_ships=True):
         self.size = size
@@ -58,7 +58,10 @@ class Board:
 
     def draw(self, screen, cell_size, offset=(0, 0), title="Player Board"):
         font = pygame.font.SysFont(None, 36)
-
+        red_image = pygame.image.load('assets/images/redtoken.png')
+        red_image = pygame.transform.scale(red_image, (CELL_SIZE2, CELL_SIZE2))
+        blue_image = pygame.image.load('assets/images/bluetoken.png')
+        blue_image = pygame.transform.scale(blue_image, (CELL_SIZE2, CELL_SIZE2))
         title_surface = font.render(title, True, BLACK)
         title_width, title_height = title_surface.get_size()
         grid_width = self.size * cell_size
@@ -84,37 +87,36 @@ class Board:
             for x, cell in enumerate(row):
                 tile_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
                 if cell == 'O':
-                    pygame.draw.rect(screen, BLUE, tile_rect)
+                    screen.blit(blue_image, tile_rect.topleft)
                 elif cell == 'X':
-                    pygame.draw.rect(screen, RED, tile_rect)
+                    red_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
+                    screen.blit(red_image, red_rect.topleft)
                 elif cell == 'SUNK':
-                    pygame.draw.rect(screen, RED, tile_rect)
+                    red_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
+                    screen.blit(red_image, red_rect.topleft)
                 pygame.draw.rect(screen, BLACK, tile_rect, 1)
 
         if self.show_ships:
             for ship in self.ships:
                 ship.draw(screen)
         
-       # for ship_positions, ship_image_path, orientation in self.sunk_ships:
-       
-
-            # Calcula la posición inicial del barco (ajustado)
-        #    x_start, y_start = ship_positions[0]
-             
-
-        #    ship_image = pygame.image.load(ship_image_path)
+        for ship_positions, ship_image_path, orientation in self.sunk_ships:
+            x_start, y_start = ship_positions[0]
+            ship_image = pygame.image.load(ship_image_path)
             
-       #     if orientation == 'horizontal':
-        #        ship_image = pygame.transform.scale(ship_image, (cell_size * len(ship_positions), cell_size))
-       #     else:
-                # Para barcos verticales, escalar primero y luego rotar 90 grados hacia la derecha (no hacia la izquierda)
-       #         ship_image = pygame.transform.scale(ship_image, (cell_size, cell_size * len(ship_positions)))
-        #        ship_image = pygame.transform.rotate(ship_image, 90)
-       #     
-            # Dibuja el barco completo una vez
-        #    screen.blit(ship_image, (offset[0] + x_start * cell_size, offset[1] + y_start * cell_size))
-    def check_sunk_ship(self, x: int, y: int) -> Ship:
+            if orientation == 'horizontal':
+                ship_image = pygame.transform.scale(ship_image, (cell_size * len(ship_positions), cell_size))
+            else:
+                ship_image = pygame.transform.scale(ship_image, (  cell_size * len(ship_positions),cell_size))
+                ship_image = pygame.transform.rotate(ship_image, 90)
+          
+            screen.blit(ship_image, (offset[0] + x_start * cell_size, offset[1] + y_start * cell_size))
+
+            
+    def check_sunk_ship(self, x: int, y: int, screen) -> Ship:
         print(f"Checking if ship at ({x}, {y}) is sunk...")
+        red_image = pygame.image.load('assets/images/redtoken.png')
+        red_image = pygame.transform.scale(red_image, (CELL_SIZE2, CELL_SIZE2))
         for ship in self.ships:
             occupied_positions = ship.get_occupied_positions()
             print(f"Checking ship: {ship.name} with positions: {occupied_positions}")
@@ -126,6 +128,22 @@ class Board:
                 if all(self.grid[pos[1]][pos[0]] == 'X' for pos in grid_positions):
                     self.sunk_ships.append(ship)
                     print(f"Ship {ship.name} is sunk!")
+ 
+                    for pos in grid_positions:
+                        tile_rect = pygame.Rect(520 + pos[0] * CELL_SIZE2, 100 + pos[1] * CELL_SIZE2, CELL_SIZE2, CELL_SIZE2)
+ 
+                        screen.blit(red_image, tile_rect.topleft)
+                        pygame.draw.rect(screen, BLACK, tile_rect, 1)
+                    ship_image_path = ship.image_path
+                    ship_image = pygame.image.load(ship_image_path)
+                    if ship.orientation == 'horizontal':
+                        ship_image = pygame.transform.scale(ship_image, (CELL_SIZE2 * ship.size, CELL_SIZE2))
+                    else:
+                        ship_image = pygame.transform.scale(ship_image, (CELL_SIZE2, CELL_SIZE2 * ship.size))
+                        ship_image = pygame.transform.rotate(ship_image, 90)
+
+                    screen.blit(ship_image, (520 + grid_positions[0][0] * CELL_SIZE2, 100 + grid_positions[0][1] * CELL_SIZE2))
+ 
                     return ship
         print("No ship is sunk at this position.")
         return None

@@ -10,7 +10,7 @@ import random
 import time
 from player import player_turn
 from ai_computer import AI, process_ai_attack
-
+open("control_file.txt", "w").close()
 # Add a variable to track the alert display time
 alert_start_time = None
 alert_duration = 30
@@ -73,6 +73,8 @@ current_turn = 'player'  # This variable keeps track of whose turn it is
 player_moves = []
 ai_moves = []
 running = True
+with open("control_file.txt", "w") as file:
+    file.write("CONTROL FILE:\n\n")
 while running:
     clock.tick(60)
     events = pygame.event.get()
@@ -94,12 +96,12 @@ while running:
         menu.draw()
     elif game_state == 'INSTRUCTIONS':
         popup_rect = pygame.Rect(50, 150, 700, 300)
-        pygame.draw.rect(screen, GRAY, popup_rect)
+        pygame.draw.rect(screen, (0,0,0), popup_rect)
         pygame.draw.rect(screen, BLACK, popup_rect, 2)
 
         font = pygame.font.Font(None, 36)
         instructions = [
-            "Instructions",
+            "                                INSTRUCTIONS",
             "Drag and drop the boats to your desired position",
             "Use the UP and DOWN keys to change the orientation",
             "Click 'Next' once in desired position"
@@ -111,9 +113,9 @@ while running:
             y_offset += 50
 
         close_button = pygame.Rect(popup_rect.x + 300, popup_rect.y + 350, 100, 50)
-        pygame.draw.rect(screen, RED, close_button)
-        pygame.draw.rect(screen, BLACK, close_button, 2)
-        close_text = font.render("Close", True, WHITE)
+        pygame.draw.rect(screen, GRAY, close_button)
+        pygame.draw.rect(screen, (249, 246, 238), close_button, 2)
+        close_text = font.render("Close", True, (249, 246, 238))
         screen.blit(close_text, (close_button.x + 20, close_button.y + 10))
 
         for event in events:
@@ -136,7 +138,7 @@ while running:
                 if ship.selected:
                     ship.handle_keyboard_event(event)
 
-        if draw_button(screen, "Next", next_button, BLUE, RED, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
+        if draw_button(screen, "Next", next_button,(0,0,0) ,GRAY, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
             within_bounds, out_of_bounds_ships = player_board.all_ships_within_bounds()
             overlapping_ships = player_board.check_for_overlaps()
 
@@ -197,7 +199,7 @@ while running:
                 text_surface = font.render(alert_message, True, (255, 0, 0))
                 screen.blit(text_surface, (50, 520))
                 alert_start_time = time.time()
-        if draw_button(screen, "Reset", reset_button, BLUE, RED, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
+        if draw_button(screen, "Reset", reset_button, (0,0,0) ,GRAY, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
             reset_ships()
 
         if alert_start_time is not None:
@@ -253,14 +255,7 @@ while running:
                 turn_popup_start_time = time.time()
 
     pygame.display.flip()
-
-    with open("control_file.txt", "w") as file:
-        file.write("Player Moves:\n")
-        for move in player_moves:
-            file.write(move + "\n")
-        file.write("\nAI Moves:\n")
-        for move in ai_moves:
-            file.write(move + "\n")
+ 
 
 
 pygame.quit()

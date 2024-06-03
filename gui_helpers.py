@@ -258,4 +258,20 @@ def show_message(screen, text, font, color, position):
     text_rect = text_surface.get_rect(center=position)
     screen.blit(text_surface, text_rect)
 
- 
+def show_no_repetition(screen, message, duration=2):
+    font = pygame.font.Font(None, 36)
+    popup_rect = pygame.Rect(200, 200, 600, 150) 
+    pygame.draw.rect(screen, GRAY, popup_rect)
+    pygame.draw.rect(screen, BLACK, popup_rect, 2)
+
+    lines = message.split('\n')
+    y_offset = 50
+
+    for line in lines:
+        text_surface = font.render(line, True, BLACK)
+        text_rect = text_surface.get_rect(center=(popup_rect.x + popup_rect.width // 2, popup_rect.y + y_offset))
+        screen.blit(text_surface, text_rect)
+        y_offset += 40  
+
+    pygame.display.flip()
+    pygame.time.wait(duration * 1000)

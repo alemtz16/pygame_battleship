@@ -34,7 +34,7 @@ class Ship:
      
 
     def draw(self, screen):
-        screen.blit(self.image, self.rect)
+        screen.blit(self.image, self.rect.topleft)
 
     def update_position(self, cell_position, cell_size):
         self.rect.topleft = (cell_position[0] * cell_size, cell_position[1] * cell_size)
@@ -74,6 +74,13 @@ class Ship:
         elif event.type == pygame.MOUSEBUTTONUP:
             if self.dragging:
                 self.dragging = False
+   
+                grid_x = round(self.rect.topleft[0] / CELL_SIZE2)
+                grid_y = round(self.rect.topleft[1] / CELL_SIZE2)
+                
+      
+                self.rect.topleft = ((grid_x + 0.25) * CELL_SIZE2, (grid_y + 0.5) * CELL_SIZE2)
+ 
                 self.start_position = self.rect.topleft
 
         elif event.type == pygame.MOUSEMOTION:
