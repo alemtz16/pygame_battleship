@@ -116,32 +116,32 @@ class AI:
         if not self.hit_list:
             return self._get_coordinates_find()
 
-        last_hit = self.hit_list[-1]
-        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-
-        if self.ship_orientation:
-            if self.ship_orientation == 'horizontal':
-                directions = [(1, 0), (-1, 0)]
-            else:
-                directions = [(0, 1), (0, -1)]
-
+        directions = self._get_possible_directions()
         for dx, dy in directions:
-            nx, ny = last_hit.x + dx, last_hit.y + dy
+            nx, ny = self.hit_list[-1].x + dx, self.hit_list[-1].y + dy
             if 0 <= nx < self.grid_size and 0 <= ny < self.grid_size and not self.shots_fired[ny][nx]:
                 self.last_shot = Coordinates(nx, ny)
                 self.mark_shot(nx, ny)
                 return nx, ny
 
-        if self.ship_orientation:
-            self.switch_direction = not self.switch_direction
-            if self.switch_direction:
-                self.hit_list.reverse()
+        if self.ship_orientation and not self.switch_direction:
+            self.switch_direction = True
+            self.hit_list.reverse()
+        else:
+            self.switch_direction = False
+            self.hit_list.pop()
 
         if not self.hit_list:
             return self._get_coordinates_find()
-        else:
-            self.hit_list.pop()
-            return self._get_coordinates_sink()
+        return self._get_coordinates_sink()
+
+    def _get_possible_directions(self) -> List[Tuple[int, int]]:
+        if self.ship_orientation:
+            if self.ship_orientation == 'horizontal':
+                return [(1, 0), (-1, 0)]
+            else:
+                return [(0, 1), (0, -1)]
+        return [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
     def get_ship_positions(self) -> List[List[Tuple[int, int]]]:
         ship_positions = []
