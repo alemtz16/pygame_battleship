@@ -113,10 +113,10 @@ while running:
             y_offset += 50
 
         close_button = pygame.Rect(popup_rect.x + 300, popup_rect.y + 350, 100, 50)
-        pygame.draw.rect(screen, GRAY, close_button)
-        pygame.draw.rect(screen, (249, 246, 238), close_button, 2)
-        close_text = font.render("Close", True, (249, 246, 238))
-        screen.blit(close_text, (close_button.x + 20, close_button.y + 10))
+        pygame.draw.rect(screen, (0,0,0), close_button)
+ 
+        if draw_button(screen, "Close", close_button, (0, 0, 0), GRAY, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) and pygame.mouse.get_pressed()[0]:
+            print('hola')
 
         for event in events:
             if event.type == pygame.QUIT:
@@ -212,9 +212,12 @@ while running:
                 alert_start_time = None
 
     elif game_state == 'GAME':
-        player_board.draw(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")
+        player_board.draw1(screen, CELL_SIZE2, offset=(50, 100), title="Player Board")
         computer_board.draw(screen, CELL_SIZE2, offset=(520, 100), title="Computer Board")
         # After placing ships
+
+        # Show the cursor
+        pygame.mouse.set_visible(True)
 
         if show_turn_popup:
             elapsed_time = time.time() - turn_popup_start_time
@@ -232,6 +235,7 @@ while running:
                 show_turn_popup = False
 
         if current_turn == 'player' and not show_turn_popup:
+
             turn_over, cursor_x, cursor_y = player_turn(events, screen, ai_player, cursor_x, cursor_y,computer_board)
             if turn_over:
                 player_moves.append(f"Player attacked {chr(cursor_y + 65)}{cursor_x + 1}")

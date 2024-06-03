@@ -77,8 +77,8 @@ def show_turn_selection_popup(screen):
     prompt_rect = prompt_text.get_rect(center=(popup_rect.x + popup_rect.width // 2, popup_rect.y + 50))
     screen.blit(prompt_text, prompt_rect)
     
-    draw_button(screen, "Manual", manual_button, BLUE, RED, font)
-    draw_button(screen, "Random", random_button, BLUE, RED, font)
+    draw_button(screen, "Manual", manual_button, (0, 0, 0), GRAY, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE)) 
+    draw_button(screen, "Random", random_button, (0, 0, 0), GRAY, pygame.font.SysFont(FONT_NAME, TITLE_FONT_SIZE))
     
     pygame.display.flip()
     

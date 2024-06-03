@@ -112,6 +112,49 @@ class Board:
           
             screen.blit(ship_image, (offset[0] + x_start * cell_size, offset[1] + y_start * cell_size))
 
+    def draw1(self, screen, cell_size, offset=(0, 0), title="Player Board"):
+        font = pygame.font.SysFont(None, 36)
+        red_image = pygame.image.load('assets/images/redtoken.png')
+        red_image = pygame.transform.scale(red_image, (CELL_SIZE2, CELL_SIZE2))
+        blue_image = pygame.image.load('assets/images/bluetoken.png')
+        blue_image = pygame.transform.scale(blue_image, (CELL_SIZE2, CELL_SIZE2))
+        title_surface = font.render(title, True, BLACK)
+        title_width, title_height = title_surface.get_size()
+        grid_width = self.size * cell_size
+
+        title_x = offset[0] + (grid_width - title_width) // 2
+        title_y = offset[1] - title_height - 50
+
+        screen.blit(title_surface, (title_x, title_y))
+
+        for i, label in enumerate(self.row_labels):
+            label_surface = font.render(label, True, BLACK)
+            label_width, _ = label_surface.get_size()
+
+            screen.blit(label_surface, (offset[0] - label_width - 10, offset[1] + i * cell_size + (cell_size // 2 - font.get_height() // 2)))
+
+        for i, label in enumerate(self.column_labels):
+            label_surface = font.render(label, True, BLACK)
+            _, label_height = label_surface.get_size()
+
+            screen.blit(label_surface, (offset[0] + i * cell_size + (cell_size // 2 - label_surface.get_width() // 2), offset[1] - label_height - 10))
+
+        for y, row in enumerate(self.grid):
+            for x, cell in enumerate(row):
+                tile_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
+                if cell == 'O':
+                    screen.blit(blue_image, tile_rect.topleft)
+                elif cell == 'X':
+                    red_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
+                    screen.blit(red_image, red_rect.topleft)
+                elif cell == 'SUNK':
+                    red_rect = pygame.Rect(offset[0] + x * cell_size, offset[1] + y * cell_size, cell_size, cell_size)
+                    screen.blit(red_image, red_rect.topleft)
+                pygame.draw.rect(screen, BLACK, tile_rect, 1)
+
+        if self.show_ships:
+            for ship in self.ships:
+                ship.draw(screen)
             
     def check_sunk_ship(self, x: int, y: int, screen) -> Ship:
         print(f"Checking if ship at ({x}, {y}) is sunk...")

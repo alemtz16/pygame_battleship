@@ -27,13 +27,18 @@ def is_ship_sunk(board, ship):
 
 def show_ship_sunk_popup(screen, message, ship_positions, image_path, duration=2):
     font = pygame.font.Font(None, 36)
-    popup_rect = pygame.Rect(200, 150, 400, 300)
+    popup_rect = pygame.Rect(300, 150, 400, 400)
     pygame.draw.rect(screen, GRAY, popup_rect)
     pygame.draw.rect(screen, BLACK, popup_rect, 2)
 
     text_surface = font.render(message, True, BLACK)
     text_rect = text_surface.get_rect(center=(popup_rect.x + popup_rect.width // 2, popup_rect.y + 50))
     screen.blit(text_surface, text_rect)
+
+    flame_image = pygame.image.load('assets/images/explosion.png')   
+    flame_image = pygame.transform.scale(flame_image, (300, 200))   
+    flame_image_rect = flame_image.get_rect(center=(popup_rect.x + popup_rect.width // 2, popup_rect.y + 200))   
+    screen.blit(flame_image, flame_image_rect)
 
     pygame.display.flip()
     pygame.time.wait(duration * 1000)
@@ -148,6 +153,8 @@ def player_turn(events, screen, ai_player, cursor_x, cursor_y, computer_board):
                     logging.debug(f"Position {row_label}{col_label} has already been chosen.")
                     show_no_repetition(screen, f"Position {row_label}{col_label} has already been chosen.\n Choose another.", duration=2)
                 else:
+                    # Show the cursor
+                    pygame.mouse.set_visible(True)
                     if not show_confirmation_popup(screen, row_label, col_label):
                         attack_position = None 
                     else: 
